@@ -1,6 +1,4 @@
 
-import os
-import yaml
 
 
 """
@@ -51,10 +49,7 @@ def schemaMerge(a, b):
 def buildSchema(modules):
     schema = {}
     for module in modules:
-        file = os.path.join(module.path, "_schema.yml")
-        if os.path.exists(file):
-            schema2 = yaml.load(open(file))
-            schema = schemaMerge(schema, schema2)
+        schema = schemaMerge(schema, module.getSchema())
     return schema
 
 
