@@ -1,5 +1,7 @@
 
 
+import yaml
+import os
 
 """
 From http://stackoverflow.com/questions/7204805/dictionaries-of-dictionaries-merge
@@ -46,8 +48,8 @@ def schemaMerge(a, b):
     return a
 
 
-def buildSchema(modules):
-    schema = {}
+def buildSchema(mydir, modules):
+    schema = yaml.load(open(os.path.join(mydir, "./schemas/root.yml")))
     for module in modules:
         schema = schemaMerge(schema, module.getSchema())
     return schema

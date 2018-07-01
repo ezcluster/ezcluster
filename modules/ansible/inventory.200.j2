@@ -1,0 +1,8 @@
+
+{% for group in m.cluster.groups %}
+
+[{{ group.name }}]
+{%     for host in group.hosts -%}
+{{ host }}
+{%     endfor %}
+{% endfor %}

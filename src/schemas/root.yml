@@ -1,0 +1,14 @@
+
+type: map
+mapping:
+  "build_folder": { type: str, required: true, unique: yes }
+  "modules":
+    type: seq
+    required: true
+    sequence:
+    - type: str
+              
+    
+    
+    
+  

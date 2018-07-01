@@ -17,6 +17,10 @@ loggers:
     level: DEBUG
     handlers: [console]
     propagate: no
+  ezcluster.groomer:
+    level: DEBUG
+    handlers: [console]
+    propagate: no
 root:
   level: WARN
   handlers: [console]

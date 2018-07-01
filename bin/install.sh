@@ -11,4 +11,5 @@ curl https://bootstrap.pypa.io/get-pip.py | python
 
 pip install -r ${MYDIR}/../requirements.txt
 
+bash
 #deactivate
