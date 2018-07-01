@@ -21,6 +21,10 @@ loggers:
     level: DEBUG
     handlers: [console]
     propagate: no
+  ezcluster.modules:
+    level: DEBUG
+    handlers: [console]
+    propagate: no
 root:
   level: WARN
   handlers: [console]

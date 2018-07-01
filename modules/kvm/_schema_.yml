@@ -2,6 +2,7 @@
 
 type: map
 mapping:
+  "id": { type: str, required: true, unique: yes }
   "domain": { type: str, required: false, unique: yes }
   "zone": { type: str, required: false, unique: yes }
   "kvm_template": { type: str, required: false, unique: yes }

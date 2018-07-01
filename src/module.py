@@ -37,9 +37,10 @@ class Module:
         logger.debug(self.path + "<----")
         pref = len(self.path) + 1
         for dirpath, dirnames, filenames in os.walk(self.path):  # @UnusedVariable
+            logger.debug("dirpath:{}  dirnames:{}  filename:{}".format(dirpath, dirnames, filenames))
             for filename in filenames:
                 logger.debug(filename)
-                if not filename.startswith("_schema_") and not filename.startswith("__") and not filename.startswith("_groomer_") and not filename == ".gitignore":
+                if not filename.startswith("_")  and not filename == ".gitignore":
                     sourceFile = os.path.join(dirpath, filename)
                     targetFileName = sourceFile[pref:]
                     # Handle the type and eventual suffix (Used as short comment)

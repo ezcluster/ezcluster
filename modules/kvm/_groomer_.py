@@ -1,7 +1,9 @@
 
 import os
 import copy
-from misc import ERROR
+from misc import ERROR, appendPath
+import socket
+import ipaddress
 
 def locate(key, dict1, dict2, errmsg):
     if key in dict1:
@@ -13,7 +15,15 @@ def locate(key, dict1, dict2, errmsg):
             ERROR(errmsg)
 
 
+
+def resolveDns(fqdn):
+    try: 
+        return socket.gethostbyname(fqdn)
+    except socket.gaierror:
+        return None
+
 def groom(module, model):
+    model['data']['kvmScriptsPath'] = appendPath(module.path, "_scripts")
     # ----------------------------------------- Handle patterns
     model["data"]["patternByName"] = {}
     if 'patterns' in model['cluster']:
@@ -41,7 +51,32 @@ def groom(module, model):
                 ERROR("Sum of all root_disk LV must not exceed or equal template root PV ({} >= {})".format(s, pattern['kvmTemplate']["root_physical_volume_size_gb"]))
     
     
+    # ----------------------------------------- Handle patterns
     if 'nodes' in model['cluster']:
+        nodeByIp = {}
         for node in model['cluster']['nodes']:
             if not 'hostname' in node:
                 node['hostname'] = node['name']
+            if "vmname" not in node:
+                node['vmname'] = model['cluster']['id'] + "_" + node['name']
+            if node['host'] not in model['infra']['hostByName']:
+                ERROR("Node '{}' reference an unexisting host ({})".format(node["name"], node['host']))
+            if node['pattern'] not in model['data']['patternByName']:
+                ERROR("Node '{}' reference an unexisting pattern ({})".format(node["name"], node['pattern']))
+            pattern =  model['data']['patternByName'][node['pattern']]
+            node["fqdn"] = node['hostname'] + "." + pattern['domain']
+            ip = node['ip'] = resolveDns(node['fqdn'])
+            if ip == None:
+                ERROR("Unable to lookup an IP for node '{0}' ({1})'.".format(node['name'], node['fqdn']))
+            if ip not in nodeByIp:
+                nodeByIp[ip] = node
+            else:
+                ERROR("Same IP ({}) used for both node '{}' and '{}'".format(ip, nodeByIp[ip]['name'], node['name']))
+            network =  pattern["network"]
+            node['network'] = network['name']
+            if ipaddress.ip_address(u"" + ip) not in network['cidr']:
+                ERROR("IP '{}' not in network '{}' for node {}".format(ip, network['name'], node['name']))
+
+            
+
+
