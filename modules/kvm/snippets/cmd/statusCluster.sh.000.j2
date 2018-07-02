@@ -1,0 +1,13 @@
+#!/bin/bash
+
+#
+# GENERATED FILE. DO NOT EDIT
+#
+
+echo "----------- Display cluster {{m.cluster.id}} status"
+{% for node in m.cluster.nodes %}
+{{m.data.kvmScriptsPath}}/statusVM.sh --host {{m.infra.hostByName[node.host].fqdn}} --name {{node.vmname}} 
+{% endfor %}
+
+
+

@@ -1,5 +1,0 @@
-
-{% for node in m.cluster.nodes -%}
-{{ node.name }} ansible_ssh_host={{ node.hostname }}.{{ m.cluster.domain }}  ansible_ssh_user=root 
-# ansible_ssh_private_key_file={x{m.os.path.join(m.build_dir,m.env.keys_location)}}/build_key		#  {{ node['hostname'] + "." + m.cluster.domain}}
-{% endfor %}

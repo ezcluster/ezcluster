@@ -1,0 +1,57 @@
+#!/bin/bash
+
+echo "----------- Test if IP are free for cluster {{m.cluster.id}}"
+set +e
+
+function ensure_ip_free
+{
+	echo "Will ensure $1 is not already in use.."
+	ping -c 1 -t 1 $1 >/dev/null 2>&1
+	if [ $? -eq 0 ]
+	then
+		echo "IP $1 IS ALIVE. Will not continue!!"
+		exit 1
+	fi
+	echo "OK"
+}
+
+{% for node in m.cluster.nodes %}
+ensure_ip_free {{node.ip}}
+{% endfor %}
+
+set -e
+
+
+{% for node in m.cluster.nodes %}
+	
+{{m.data.kvmScriptsPath}}/buildVM.sh \
+ 	--host {{ m.infra.hostByName[node.host].fqdn }} \
+	--name {{ node.vmname }} \
+	--vcpu {{ m.data.patternByName[node.pattern].vcpu }} \
+	--ram {{ m.data.patternByName[node.pattern].memory }} \
+ 	--volume {{node.rootVolume }} \
+ 	--template {{ m.data.patternByName[node.pattern].kvmTemplate.name }} \
+	--hostname {{node.hostname}} \
+  	--bridge {{ m.infra.networkByName[node.network].bridge }} \
+  	--ip {{node.ip}} \
+  	--netmask {{ m.infra.networkByName[node.network].netmask }} \
+  	--gateway {{ m.infra.networkByName[node.network].gateway }} \
+  	--search {{ m.data.patternByName[node.pattern].domain }} &
+  
+	
+{% endfor %}
+
+
+echo "............ Wait for VM creation"
+wait
+
+echo " ----------- Will start all VMs"
+{% for node in m.cluster.nodes %}
+
+{{m.data.kvmScriptsPath}}/startVM.sh --host {{ m.infra.hostByName[node.host].fqdn }} --name {{node.vmname}} --fqdn {{node.ip}} &
+{% endfor %}
+
+echo "............ Wait for VM up and ssh ready"
+wait
+
+echo "---------------- END"

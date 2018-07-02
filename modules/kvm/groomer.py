@@ -23,7 +23,7 @@ def resolveDns(fqdn):
         return None
 
 def groom(module, model):
-    model['data']['kvmScriptsPath'] = appendPath(module.path, "_scripts")
+    model['data']['kvmScriptsPath'] = appendPath(module.path, "scripts")
     # ----------------------------------------- Handle patterns
     model["data"]["patternByName"] = {}
     if 'patterns' in model['cluster']:
@@ -59,8 +59,6 @@ def groom(module, model):
                 node['hostname'] = node['name']
             if "vmname" not in node:
                 node['vmname'] = model['cluster']['id'] + "_" + node['name']
-            if node['host'] not in model['infra']['hostByName']:
-                ERROR("Node '{}' reference an unexisting host ({})".format(node["name"], node['host']))
             if node['pattern'] not in model['data']['patternByName']:
                 ERROR("Node '{}' reference an unexisting pattern ({})".format(node["name"], node['pattern']))
             pattern =  model['data']['patternByName'][node['pattern']]
@@ -76,6 +74,16 @@ def groom(module, model):
             node['network'] = network['name']
             if ipaddress.ip_address(u"" + ip) not in network['cidr']:
                 ERROR("IP '{}' not in network '{}' for node {}".format(ip, network['name'], node['name']))
+            if 'root_volume_index' in node:
+                idx = node['root_volume_index']
+            else:
+                idx = 0
+            if node['host'] not in model['infra']['hostByName']:
+                ERROR("Node '{}' reference an unexisting host ({})".format(node["name"], node['host']))
+            host = model['infra']['hostByName'][node['host']]
+            nbrRootVolumes = len(host['root_volumes'])
+            node['rootVolume'] = host['root_volumes'][idx % nbrRootVolumes]['path']
+                
 
             
 

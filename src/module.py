@@ -5,7 +5,7 @@ import yaml
 import logging
 import imp
 
-from misc import ERROR
+from misc import ERROR,appendPath
 
 
 logger = logging.getLogger("ezcluster.modules")
@@ -16,14 +16,14 @@ class Module:
         self.path = path
         
     def getSchema(self):
-        f = os.path.join(self.path, "_schema_.yml")
+        f = os.path.join(self.path, "schema.yml")
         if os.path.exists(f):
             return yaml.load(open(f))
         else:
             return {}
     
     def groom(self, model):
-        codeFile = os.path.join(self.path, "_groomer_.py")
+        codeFile = os.path.join(self.path, "groomer.py")
         if os.path.exists(codeFile):
             logger.debug("Will load '{0}' as python code".format(codeFile))
             groomer = imp.load_source(self.name, codeFile)
@@ -34,13 +34,14 @@ class Module:
 
     def walk(self, targetFileByName):
         """ Enrich the targetFileByName structure with file from this module """
-        logger.debug(self.path + "<----")
-        pref = len(self.path) + 1
-        for dirpath, dirnames, filenames in os.walk(self.path):  # @UnusedVariable
-            logger.debug("dirpath:{}  dirnames:{}  filename:{}".format(dirpath, dirnames, filenames))
+        #logger.debug(self.path + "<----")
+        snippetsPath = appendPath(self.path, "snippets")
+        pref = len(snippetsPath) + 1
+        for dirpath, dirnames, filenames in os.walk(snippetsPath):  # @UnusedVariable
+            #logger.debug("dirpath:{}  dirnames:{}  filename:{}".format(dirpath, dirnames, filenames))
             for filename in filenames:
-                logger.debug(filename)
-                if not filename.startswith("_")  and not filename == ".gitignore":
+                #logger.debug(filename)
+                if not filename == ".gitignore":
                     sourceFile = os.path.join(dirpath, filename)
                     targetFileName = sourceFile[pref:]
                     # Handle the type and eventual suffix (Used as short comment)

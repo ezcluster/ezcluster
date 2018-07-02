@@ -40,4 +40,5 @@ mapping:
         "pattern": { type: str, required: true}
         "hostname": { type: str}
         "vmname": { type: str}
+        "root_volume_index": { type: int }
         
