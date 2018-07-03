@@ -45,6 +45,20 @@ set -e
 echo "............ Wait for VM creation"
 wait
 
+{% for node in m.cluster.nodes %}
+{% if m.data.dataDisksByNode[node.name] is defined -%}
+echo "---- Will build Data disk(s) for node {{node.name}}"
+{%     for disk in m.data.dataDisksByNode[node.name] -%}
+{{m.data.kvmScriptsPath}}/attachDisk.sh --host {{m.infra.hostByName[node.host].fqdn}} --name {{node.vmname}} --size {{disk.size}} --volume {{disk.volume}} --device {{disk.device}} --dmode {{disk.mode}}
+{%     endfor %}
+{% else -%}
+echo "---- No Data disk for node {{node.name}}"
+{% endif -%}
+{% endfor %}
+
+
+
+
 echo " ----------- Will start all VMs"
 {% for node in m.cluster.nodes %}
 

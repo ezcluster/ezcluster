@@ -1,4 +1,4 @@
-
+{% if m.cluster.groups is defined and m.cluster.groups|length > 0 %}
 {% for group in m.cluster.groups %}
 
 [{{ group.name }}]
@@ -6,3 +6,5 @@
 {{ host }}
 {%     endfor %}
 {% endfor %}
+
+{%endif%}

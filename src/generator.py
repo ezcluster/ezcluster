@@ -63,9 +63,9 @@ def generate(targetFileByName, targetFolder, model, mark):
             ERROR("Error in template built from '{0}'.\nLine {1}: {2}".format(str(targetFile), err.lineno, err))
         # logger.debug(tmpl)
         if "_node_" in targetFileName:
-            for nodeName in model['cluster']['nodes']:
-                tgf = targetFileName.replace("_node_", nodeName)
-                model['node'] = model.cluster['nodeByName'][nodeName]
+            for node in model['cluster']['nodes']:
+                tgf = targetFileName.replace("_node_", node["name"])
+                model['node'] = node
                 targetFilePath = os.path.join(targetFolder, tgf)
                 generate2(targetFilePath, tmpl, model)
                 generatedFiles.add(targetFilePath)

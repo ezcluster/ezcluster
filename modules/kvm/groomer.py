@@ -49,11 +49,25 @@ def groom(module, model):
             s = rd["slash"] + rd["varlog"] + rd["swap"]
             if s  >= pattern['kvmTemplate']["root_physical_volume_size_gb"]:
                 ERROR("Sum of all root_disk LV must not exceed or equal template root PV ({} >= {})".format(s, pattern['kvmTemplate']["root_physical_volume_size_gb"]))
+            # ------------------------------------ Data disks
+            if "data_disks" in pattern:
+                for i in range(0, len(pattern['data_disks'])):
+                    pattern['data_disks'][i]['device'] = model['infra']['deviceFromIndex'][i]
+                disksToMount = 0
+                for d in pattern['data_disks']:
+                    if "mount" in d:
+                        disksToMount += 1
+                pattern["disksToMountCount"] = disksToMount
+            else:
+                pattern["disksToMountCount"] = 0
+
     
     
     # ----------------------------------------- Handle patterns
     if 'nodes' in model['cluster']:
-        nodeByIp = {}
+        nodeByIp = {}  # Just to check duplicated ip
+        dataDisksByNode = {}
+        model['data']['dataDisksByNode'] = dataDisksByNode
         for node in model['cluster']['nodes']:
             if not 'hostname' in node:
                 node['hostname'] = node['name']
@@ -83,7 +97,21 @@ def groom(module, model):
             host = model['infra']['hostByName'][node['host']]
             nbrRootVolumes = len(host['root_volumes'])
             node['rootVolume'] = host['root_volumes'][idx % nbrRootVolumes]['path']
-                
+            # Handle data disk
+            if 'data_disks' in pattern and len(pattern["data_disks"]) > 0:
+                dataDisks = copy.deepcopy(pattern['data_disks'])
+                nbrDataVolume = len(model['infra']['hostByName'][node['host']]['data_volumes'])
+                if "data_volume_index" in node:
+                    for i in range(len(dataDisks)):
+                        dataDisks[i]['volume'] = model['infra']['hostByName'][node['host']]['data_volumes'][(i + node['data_volume_index']) % nbrDataVolume]['path']
+                elif "data_volume_indexes" in node:
+                    if len(node['data_volume_indexes']) != len(dataDisks):
+                        ERROR("Node {0}: data_volume_indexes size ({1} != pattern.data_disks size ({2})".format(node['name'], node['data_volume_indexes'], len(dataDisks)))
+                    for i in range(len(dataDisks)):
+                        dataDisks[i]['volume'] = model['infra']['hostByName'][node['host']]['data_volumes'][node['data_volume_indexes'][i] % nbrDataVolume]['path']
+                else:
+                    ERROR("Node {0}: Either 'data_volume_index' or 'data_volume_indexes' must be defined!".format(node['name']))
+                dataDisksByNode[node["name"]] = dataDisks
 
             
 

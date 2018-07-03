@@ -19,6 +19,15 @@ then
         {{m.data.kvmScriptsPath}}/deleteVM.sh --host {{m.infra.hostByName[node.host].fqdn}} --name {{node.vmname}}
         echo "---- Will delete root disk of node {{node.name}}"
         {{m.data.kvmScriptsPath}}/deleteDisk.sh --host {{m.infra.hostByName[node.host].fqdn}} --name {{node.vmname}} --volume {{node.rootVolume}} --device vda
+{% if m.data.dataDisksByNode[node.name] is defined %}
+		echo "---- Will delete Data disk(s) for node {{node.name}}"
+{%     for disk in m.data.dataDisksByNode[node.name] %}
+		{{m.data.kvmScriptsPath}}/deleteDisk.sh --host {{m.infra.hostByName[node.host].fqdn}} --name {{node.vmname}} --volume {{disk.volume}} --device {{disk.device}}
+{%     endfor %}
+{% else %}
+		echo "---- No Data disk for node {{node.name}}"
+{% endif -%}
+        
 {% endfor %}
     fi
 else

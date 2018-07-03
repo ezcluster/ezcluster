@@ -26,6 +26,15 @@ mapping:
         "zone": { type: str, required: false, unique: yes }
         "domain": { type: str, required: false, unique: yes }
         "kvm_template": { type: str, required: false, unique: yes }
+        "data_disks":
+          type: seq 
+          required: false
+          sequence:
+          - type: map
+            mapping:
+              "size": { type: int, required: true }
+              "mount": { type: str, required: false }
+              "mode": { type: str, required: true, enum: [ 'thin', 'thick' ]  }
         
 
 
@@ -41,4 +50,10 @@ mapping:
         "hostname": { type: str}
         "vmname": { type: str}
         "root_volume_index": { type: int }
+        "data_volume_index": { type: int, required: false}
+        "data_volume_indexes":
+          type: seq 
+          required: false
+          sequence:
+          - type: int
         
