@@ -24,6 +24,12 @@ def resolveDns(fqdn):
 
 def groom(module, model):
     model['data']['kvmScriptsPath'] = appendPath(module.path, "scripts")
+    model['data']["rolePaths"] = set()
+    model['data']["rolePaths"].add(appendPath(module.path, "roles"))
+    if 'role_paths' in model['cluster']:
+        for path in model['cluster']['role_paths']:
+            path = appendPath(model['data']['sourceFileDir'], path)
+            model['data']["rolePaths"].add(path)
     # ----------------------------------------- Handle patterns
     model["data"]["patternByName"] = {}
     if 'patterns' in model['cluster']:
@@ -44,11 +50,27 @@ def groom(module, model):
             if tmplName not in model["infra"]["kvmTemplateByName"]:
                 ERROR("Pattern '{}': Unknow kvm_template '{}'".format(pattern["name"], tmplName))
             pattern["kvmTemplate"] = model["infra"]["kvmTemplateByName"][tmplName]
-            # Check root disk capacity
-            rd = pattern['root_disk']
-            s = rd["slash"] + rd["varlog"] + rd["swap"]
-            if s  >= pattern['kvmTemplate']["root_physical_volume_size_gb"]:
-                ERROR("Sum of all root_disk LV must not exceed or equal template root PV ({} >= {})".format(s, pattern['kvmTemplate']["root_physical_volume_size_gb"]))
+            # Handle root disk logical volumes
+            if 'root_lvs' in pattern:
+                vgSize = 0
+                modifiedLv = set()
+                for lv in pattern["root_lvs"]:
+                    modifiedLv.add(lv["name"])
+                    if "rootLvByName" not in pattern["kvmTemplate"] or lv["name"] not in pattern['kvmTemplate']['rootLvByName']:
+                        ERROR("Pattern '{}': Logical volume '{}' does not exists in the template".format(pattern["name"], lv["name"]))
+                    else:
+                        templateLv = pattern['kvmTemplate']['rootLvByName'][lv["name"]]
+                        lv['fstype'] = templateLv["fstype"]
+                        lv["volgroup"] = pattern['kvmTemplate']['root_vg_name'] # Only one VG handled
+                        vgSize += lv["size"]
+                        if lv["size"] < templateLv["size"]:
+                            ERROR("Pattern '{}': Logical volume '{}': size ({}GB) can't be lower than the one from template ({}GB) (Can't shrink LV)".format(pattern["name"], lv['name'], lv['size'], templateLv['size']))
+                # To have accurate vg size, must add unmodified lv size
+                for tmplLvName, tmplLv in pattern['kvmTemplate']['rootLvByName'].iteritems():
+                    if tmplLvName not in modifiedLv:
+                        vgSize += tmplLv['size'] 
+                if vgSize >= pattern['kvmTemplate']["root_vg_size"]:
+                    ERROR("Pattern '{}': Sum of all root LV must not exceed or equal template root PV ({} >= {})".format(pattern["name"], vgSize, pattern['kvmTemplate']["root_vg_size"]))
             # ------------------------------------ Data disks
             if "data_disks" in pattern:
                 for i in range(0, len(pattern['data_disks'])):

@@ -1,0 +1,14 @@
+
+
+#logical_volume:
+#  name: lvroot
+#  size: 10
+#  volgroup: vg00
+#  fstype: xfs
+#
+#logical_volume:
+#  name: swap
+#  size: 8
+#  volgroup: vg00
+#  fstype: swap
+

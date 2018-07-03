@@ -1,0 +1,30 @@
+
+#- debug: var=logical_volume
+
+- name: Check fstype
+  fail:
+    msg: "Invalid fstype: {{logical_volume.fstype}}"
+  when: logical_volume.fstype != 'xfs' and logical_volume.fstype != 'ext4' and logical_volume.fstype != 'ext3' and logical_volume.fstype != 'swap'
+    
+    
+- name: "Extends logical volume {{logical_volume.name}}"
+  lvol:
+    vg: "{{logical_volume.volgroup}}"
+    lv: "{{logical_volume.name}}"
+    size: "{{logical_volume.size}}G"
+    force: "{{logical_volume.fstype == 'swap'}}"
+  register: extends
+    
+- name: Extends XFS file system
+  shell: xfs_growfs "/dev/{{logical_volume.volgroup}}/{{logical_volume.name}}"
+  when: logical_volume.fstype == "xfs" and extends is changed
+
+- name: Extends extX file system
+  shell: resize2fs "/dev/{{logical_volume.volgroup}}/{{logical_volume.name}}"
+  when: (logical_volume.fstype == "ext4" or logical_volume.fstype == "ext3") and extends is changed
+  
+- name: Reactivate swap
+  shell: swapoff "//dev/{{logical_volume.volgroup}}/{{logical_volume.name}}"; mkswap "/dev/{{logical_volume.volgroup}}/{{logical_volume.name}}"; swapon -a
+  when: logical_volume.fstype == "swap" and extends is changed
+  
+      

@@ -2,3 +2,10 @@
 - hosts: all
   roles:
   - disk_format
+  tasks:
+  - name: Adjust logical volumes on root disk
+    include_role:
+      name: lvextend
+    with_items: "{{ root_lvs }}"
+    loop_control:
+      loop_var: logical_volume

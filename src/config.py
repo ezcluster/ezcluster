@@ -37,7 +37,7 @@ def buildInfra(mydir, sourceFileDir):
     k.validate(raise_exception=False)
     if len(k.errors) != 0:
         ERROR("Problem {0}: {1}".format(infraFile, k.errors))
-    # ---------------------------- Grooming
+    # ---------------------------- Network Grooming
     infra['networkByName'] = {}
     if 'networks' in infra:
         for network in infra['networks']:
@@ -66,6 +66,13 @@ def buildInfra(mydir, sourceFileDir):
         for template in infra["kvm_templates"]:
             if 'build_key_pair' in template:
                 template['build_key_pair'] = appendPath(os.path.dirname(infraFile), template['build_key_pair'])
+            if "root_lvs" in template:
+                rootLvByName = {}
+                for lv in template['root_lvs']:
+                    rootLvByName[lv["name"]] = lv
+                    del lv["name"]
+                template['rootLvByName'] = rootLvByName
+                del template["root_lvs"]
             infra['kvmTemplateByName'][template['name']] = template
         del infra['kvm_templates']
     return infra

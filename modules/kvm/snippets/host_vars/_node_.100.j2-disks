@@ -12,3 +12,15 @@ disk_additional_disks:
 {% endfor %}
 {% endif %}
 
+{% if m.data.patternByName[m.node.pattern].root_lvs is defined and  m.data.patternByName[m.node.pattern].root_lvs|length > 0 %}
+root_lvs:
+{% for lv in m.data.patternByName[m.node.pattern].root_lvs %}
+- name: {{lv.name}}
+  fstype: {{lv.fstype}}
+  size: {{lv.size}}
+  volgroup: {{lv.volgroup}}
+  
+{%endfor%}
+{% else %}
+root_lvs: []
+{%endif%}
