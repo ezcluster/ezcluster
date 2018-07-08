@@ -1,0 +1,56 @@
+---
+# Copyright (C) 2015 BROADSoftware
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+#limitations under the License.
+#
+
+# Use stat for reducing execution time in case of already installed.
+# Of course, side effect is we will refuse to install several java version.
+
+- stat: path=/usr/bin/javac
+  register: javac
+
+
+- name: Install oracle JDK
+  yum:
+    name: "{{ jdk_rpm_url }}"
+    state: present
+  when: not javac.stat.exists
+
+  
+- name: locate JAVA_HOME
+  shell: 'echo /usr/java/jdk1.*'
+  register: java_home
+  check_mode: no
+  changed_when: false
+ 
+- name: Check java_home (1/2)
+  stat: path={{ java_home.stdout }}/bin/javac
+  register: javac
+
+- name: Check java_home (2/2)
+  fail: msg='Unable to lookup up java_home'
+  when: not javac.stat.exists
+  
+
+- name: Set JAVA_HOME in bashrc
+  blockinfile:
+    dest: /etc/bashrc
+    backup: no
+    insertafter: EOF
+    marker: "# {mark} Ansible managed block (JAVA_HOME)"
+    content: |
+      export JAVA_HOME={{ java_home.stdout }}
+  when: set_java_home is defined and set_java_home
+
+  

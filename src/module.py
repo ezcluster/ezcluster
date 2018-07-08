@@ -23,7 +23,10 @@ class Module:
             return {}
     
     def groom(self, model):
-        codeFile = os.path.join(self.path, "groomer.py")
+        rolesPath = appendPath(self.path, "roles")
+        if os.path.exists(rolesPath):
+            model['data']["rolePaths"].add(rolesPath)
+        codeFile = appendPath(self.path, "groomer.py")
         if os.path.exists(codeFile):
             logger.debug("Will load '{0}' as python code".format(codeFile))
             groomer = imp.load_source(self.name, codeFile)

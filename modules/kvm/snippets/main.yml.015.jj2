@@ -1,7 +1,7 @@
 
 - hosts: all
   roles:
-  - disk_format
+  - { role: disk_format, tags: [ disks ] }
   tasks:
   - name: Adjust logical volumes on root disk
     include_role:
@@ -9,3 +9,4 @@
     with_items: "{{ root_lvs }}"
     loop_control:
       loop_var: logical_volume
+    tags: [ "disks" ]

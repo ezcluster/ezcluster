@@ -60,7 +60,8 @@ def main():
     data = {}
     data['sourceFileDir'] = sourceFileDir
     data['ezclusterHome'] = misc.appendPath(mydir,"..")
-            
+    data["rolePaths"] = set()
+                
     model = {}
     model['cluster'] = cluster
     model['infra'] = infra

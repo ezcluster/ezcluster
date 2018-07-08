@@ -1,0 +1,7 @@
+
+- hosts: all
+  roles:
+  - { role: jdk_oracle, jdk_rpm_url: "{{{ m.repositories.java1.jdk_rpm_url }}}", tags: [ "java" ] }
+  - { role: jce, jce_archive: "{{{ m.repositories.java1.jce_archive }}}", jce_url: "{{{ m.repositories.java1.jce_url }}}", tags: [ "java" ] }
+  
+ 

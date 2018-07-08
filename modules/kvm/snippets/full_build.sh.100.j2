@@ -13,7 +13,9 @@ then
     exit 1
 fi
 
+shift
+
 ./cmd/buildCluster.sh
 
 
-ansible-playbook ./main.yml
+ansible-playbook ./main.yml "$@"

@@ -21,11 +21,18 @@ def resolveDns(fqdn):
         return socket.gethostbyname(fqdn)
     except socket.gaierror:
         return None
+    
 
 def groom(module, model):
     model['data']['kvmScriptsPath'] = appendPath(module.path, "scripts")
-    model['data']["rolePaths"] = set()
-    model['data']["rolePaths"].add(appendPath(module.path, "roles"))
+    # ------------------------------------------- Prepare memoryByHost
+    memoryByHost = {}
+    model['data']['memoryByHost'] = memoryByHost
+    for hostName, _ in model['infra']["hostByName"].iteritems():
+        memoryByHost[hostName] = {}
+        memoryByHost[hostName]['sum'] = 0
+        memoryByHost[hostName]['detail'] = {}
+    # ------------------------------------------ Add role paths if there is any in cluster definition (May be useless now ?)
     if 'role_paths' in model['cluster']:
         for path in model['cluster']['role_paths']:
             path = appendPath(model['data']['sourceFileDir'], path)
@@ -82,10 +89,7 @@ def groom(module, model):
                 pattern["disksToMountCount"] = disksToMount
             else:
                 pattern["disksToMountCount"] = 0
-
-    
-    
-    # ----------------------------------------- Handle patterns
+    # ----------------------------------------- Handle nodes
     if 'nodes' in model['cluster']:
         nodeByIp = {}  # Just to check duplicated ip
         dataDisksByNode = {}
@@ -134,7 +138,18 @@ def groom(module, model):
                 else:
                     ERROR("Node {0}: Either 'data_volume_index' or 'data_volume_indexes' must be defined!".format(node['name']))
                 dataDisksByNode[node["name"]] = dataDisks
+            memoryByHost[host['name']]['sum'] += pattern['memory']
+            memoryByHost[host['name']]['detail'][node['name']] = pattern['memory']
+        
+    print "------------- Memory usage per host"
+    l = list( model['data']['memoryByHost'].keys())
+    for h in sorted(l):
+        txt = "\t{}:{} (".format(h,  model['data']['memoryByHost'][h]['sum'])
+        for alias in model['data']['memoryByHost'][h]['detail']:
+            txt += " {}:{}".format(alias, model['data']['memoryByHost'][h]['detail'][alias])
+        txt += " )"
+        print txt
 
-            
+
 
 
