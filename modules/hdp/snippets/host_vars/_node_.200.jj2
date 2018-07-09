@@ -1,0 +1,4 @@
+
+{%% if m.node.name == "sr1" %%}
+ambari_server: true
+{%% endif %%}

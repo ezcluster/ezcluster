@@ -1,0 +1,26 @@
+
+{%% if m.data.dataDisksByNode[m.node.name] is defined and m.data.patternByName[m.node.pattern].disksToMountCount > 0 -%%}
+disk_additional_disks:
+{%% for disk in m.data.dataDisksByNode[m.node.name] %%}
+{%% if disk.mount is defined %%}
+- disk: /dev/{{{disk.device}}}
+  fstype: xfs
+  mount_options: "defaults,noatime"
+  fsopts: ""
+  mount: {{{ disk.mount }}}
+{%% endif %%}
+{%% endfor %%}
+{%% endif %%}
+
+{%% if m.data.patternByName[m.node.pattern].root_lvs is defined and  m.data.patternByName[m.node.pattern].root_lvs|length > 0 %%}
+root_lvs:
+{%% for lv in m.data.patternByName[m.node.pattern].root_lvs %%}
+- name: {{{lv.name}}}
+  fstype: {{{lv.fstype}}}
+  size: {{{lv.size}}}
+  volgroup: {{{lv.volgroup}}}
+  
+{%%endfor%%}
+{%% else %%}
+root_lvs: []
+{%%endif%%}

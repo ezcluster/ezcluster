@@ -5,5 +5,8 @@ MYDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 source ${MYDIR}/../virtualenv/bin/activate
 
 python ${MYDIR}/../src/ezcluster.py $*
+err=$?
 
 deactivate
+
+exit $err

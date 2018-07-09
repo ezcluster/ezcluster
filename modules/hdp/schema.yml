@@ -1,0 +1,12 @@
+
+
+type: map
+mapping:
+  "hdp":
+    type: map
+    required: true
+    mapping:
+      "repo": { type: str, required: true }      
+      "security": { type: str, required: true,  enum: [ 'none', 'mit-kdc', 'active-directory' ]  }
+      
+    
