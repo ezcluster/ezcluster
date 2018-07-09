@@ -1,3 +1,12 @@
 
 - import_playbook: "prepare_nodes.yml"
-  tags: [ 'hdp' ]
+  tags: [ 'hdp1' ]
+  
+- import_playbook: "install_ambari.yml"
+  tags: [ 'hdp2' ]  
+
+- import_playbook: "configure_ambari.yml"
+  tags: [ 'hdp3' ]  
+  
+  
+  
