@@ -6,17 +6,13 @@ cluster_name: '{{{ m.cluster.id }}}'
 
 ambari_version: '{{{ m.repositories[m.cluster.hdp.repo].ambari_version }}}'   # must be the 4-part full version number
 
-{%% if m.repositories[m.cluster.hdp.repo].hdp_version is defined %%}
 hdp_version: '{{{ m.repositories[m.cluster.hdp.repo].hdp_version }}}'                 # must be the 4-part full version number
 hdp_minor_version: "{{ hdp_version | regex_replace('.[0-9]+.[0-9]+[0-9_-]*$','') }}"
 hdp_major_version: "{{ hdp_minor_version.split('.').0 }}"
-{%% endif %%}
 
-{%% if m.repositories[m.cluster.hdp.repo].hdf_version is defined %%}
 hdf_version: '{{{ m.repositories[m.cluster.hdp.repo].hdf_version }}}'                 # must be the 4-part full version number
 hdf_minor_version: "{{ hdf_version | regex_replace('.[0-9]+.[0-9]+[0-9_-]*$','') }}"
 hdf_major_version: "{{ hdf_minor_version.split('.').0 }}"
-{%% endif %%}
 
 repo_base_url: '{{{ m.repositories[m.cluster.hdp.repo].repo_base_url }}}'     # change this if using a Local Repository
 

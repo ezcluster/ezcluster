@@ -10,3 +10,20 @@
     loop_control:
       loop_var: logical_volume
     tags: [ "disks" ]
+
+#  - name: Fix iotop bug
+#    lineinfile:
+#      path: /usr/lib/python2.7/site-packages/iotop/data.py
+#      regexp: "^            if not line\\.strip\\(\\)\\: continue"
+#      state: absent
+#    tags: [ "iotop" ]
+
+  #  https://unix.stackexchange.com/questions/446624/error-with-command-iotop-on-centos 
+  - name: Fix iotop bug
+    lineinfile:
+      path: /usr/lib/python2.7/site-packages/iotop/data.py
+      line:   "            if not line.strip(): continue"
+      regexp: "^            if not line\\.strip\\(\\)\\: continue"
+      insertafter: "^        for line in open\\('/proc/\\%d/status' \\% pid\\):"
+    tags: [ "iotop" ]
+    

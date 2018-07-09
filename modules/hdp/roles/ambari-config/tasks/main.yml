@@ -34,6 +34,11 @@
     return_content: no
   when: ambari_admin_user == 'admin' and ambari_admin_password != ambari_admin_default_password
 
+- debug: var=install_hdf
+- debug: var=install_hdp
+
+
+
 - block:
     - name: Attempt to read the HDF repo build.id file
       uri:
@@ -175,6 +180,8 @@
         status_code: 200,201,202
         return_content: yes
       register: existing_vdf
+
+    - debug: var=existing_vdf
 
     - name: Register the VDF with Ambari (Ambari >= 2.6)
       uri:
