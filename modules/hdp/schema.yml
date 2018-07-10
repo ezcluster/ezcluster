@@ -8,5 +8,75 @@ mapping:
     mapping:
       "repo": { type: str, required: true }      
       "security": { type: str, required: true,  enum: [ 'none', 'mit-kdc', 'active-directory' ]  }
-      
+      "clients":
+        type: seq
+        required: true
+        sequence:
+        - type: str
+          enum: 
+          - ZOOKEEPER_CLIENT
+          - HDFS_CLIENT
+          - YARN_CLIENT
+          - MAPREDUCE2_CLIENT
+          - TEZ_CLIENT
+          - SLIDER
+          - PIG
+          - SQOOP
+          - HIVE_CLIENT
+          - HCAT
+          - OOZIE_CLIENT
+          - INFRA_SOLR_CLIENT
+          - SPARK_CLIENT
+          - SPARK2_CLIENT
+          - HBASE_CLIENT
+          
+
+  "roles":
+    type: seq
+    required: true
+    sequence:
+    - type: map
+      mapping:
+        "hdp_services":
+          type: seq
+          sequence:
+          - type: str
+            enum:
+            - ZOOKEEPER_SERVER
+            - JOURNALNODE
+            - AMBARI_SERVER
+            - INFRA_SOLR
+            - APP_TIMELINE_SERVER
+            - HISTORYSERVER
+            - SPARK_JOBHISTORYSERVER
+            - SPARK2_JOBHISTORYSERVER
+            - METRICS_COLLECTOR
+            - METRICS_GRAFANA
+            - METRICS_MONITOR
+            - OOZIE_SERVER
+            - HST_SERVER
+            - HST_AGENT
+            - NAMENODE
+            - ZKFC
+            - RESOURCEMANAGER
+            - HBASE_MASTER
+            - HIVE_METASTORE
+            - NIMBUS
+            - HIVE_SERVER
+            - DRPC_SERVER
+            - STORM_UI_SERVER
+            - WEBHCAT_SERVER
+            - ZEPPELIN_MASTER
+            - SPARK2_THRIFTSERVER
+            - DATANODE
+            - NODEMANAGER
+            - HBASE_REGIONSERVER
+            - KAFKA_BROKER
+            - SUPERVISOR
+            - RANGER_ADMIN
+            - RANGER_USERSYNC
+            - STREAMLINE_SERVER
+            - NIFI_MASTER
+            
+            
     
