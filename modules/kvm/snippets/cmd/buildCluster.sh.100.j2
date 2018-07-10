@@ -27,16 +27,16 @@ set -e
 {{m.data.kvmScriptsPath}}/buildVM.sh \
  	--host {{ m.infra.hostByName[node.host].fqdn }} \
 	--name {{ node.vmname }} \
-	--vcpu {{ m.data.patternByName[node.pattern].vcpu }} \
-	--ram {{ m.data.patternByName[node.pattern].memory }} \
+	--vcpu {{ m.data.roleByName[node.role].vcpu }} \
+	--ram {{ m.data.roleByName[node.role].memory }} \
  	--volume {{node.rootVolume }} \
- 	--template {{ m.data.patternByName[node.pattern].kvmTemplate.name }} \
+ 	--template {{ m.data.roleByName[node.role].kvmTemplate.name }} \
 	--hostname {{node.hostname}} \
   	--bridge {{ m.infra.networkByName[node.network].bridge }} \
   	--ip {{node.ip}} \
   	--netmask {{ m.infra.networkByName[node.network].netmask }} \
   	--gateway {{ m.infra.networkByName[node.network].gateway }} \
-  	--search {{ m.data.patternByName[node.pattern].domain }} &
+  	--search {{ m.data.roleByName[node.role].domain }} &
   
 	
 {% endfor %}

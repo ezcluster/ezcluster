@@ -12,7 +12,7 @@ mapping:
     sequence:
     - type: str  
 
-  "patterns":
+  "roles":
     type: seq
     required: true
     sequence:
@@ -52,7 +52,7 @@ mapping:
       mapping:
         "name": { type: str, required: true}
         "host": { type: str, required: true}
-        "pattern": { type: str, required: true}
+        "role": { type: str, required: true}
         "hostname": { type: str}
         "vmname": { type: str}
         "root_volume_index": { type: int }

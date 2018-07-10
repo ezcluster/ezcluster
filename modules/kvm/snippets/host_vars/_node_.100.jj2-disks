@@ -1,5 +1,5 @@
 
-{%% if m.data.dataDisksByNode[m.node.name] is defined and m.data.patternByName[m.node.pattern].disksToMountCount > 0 -%%}
+{%% if m.data.dataDisksByNode[m.node.name] is defined and m.data.roleByName[m.node.role].disksToMountCount > 0 -%%}
 disk_additional_disks:
 {%% for disk in m.data.dataDisksByNode[m.node.name] %%}
 {%% if disk.mount is defined %%}
@@ -12,9 +12,9 @@ disk_additional_disks:
 {%% endfor %%}
 {%% endif %%}
 
-{%% if m.data.patternByName[m.node.pattern].root_lvs is defined and  m.data.patternByName[m.node.pattern].root_lvs|length > 0 %%}
+{%% if m.data.roleByName[m.node.role].root_lvs is defined and  m.data.roleByName[m.node.role].root_lvs|length > 0 %%}
 root_lvs:
-{%% for lv in m.data.patternByName[m.node.pattern].root_lvs %%}
+{%% for lv in m.data.roleByName[m.node.role].root_lvs %%}
 - name: {{{lv.name}}}
   fstype: {{{lv.fstype}}}
   size: {{{lv.size}}}
