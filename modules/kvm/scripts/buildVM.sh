@@ -167,7 +167,7 @@ CMD="echo \"$RESOLVE\" >/tmp/${NAME}/etc/resolv.conf"
 ssh $SSH_OPTIONS $HOST "sudo bash -c '${CMD}'"
 
 echo "Configure ${NAME} /etc/hostname"
-CMD="echo \"$NAME\" >/tmp/${NAME}/etc/hostname"
+CMD="echo \"$VM_HOSTNAME\" >/tmp/${NAME}/etc/hostname"
 #echo "Exec on $HOST -> $CMD"
 ssh $SSH_OPTIONS $HOST "sudo bash -c '${CMD}'"
 
