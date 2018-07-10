@@ -41,64 +41,64 @@ def groom(module, model):
             model['data']["rolePaths"].add(path)
     # ----------------------------------------- Handle roles
     model["data"]["roleByName"] = {}
-    if 'roles' in model['cluster']:
-        for rl in model["cluster"]["roles"]:
-            role = copy.deepcopy(rl)
-            model["data"]["roleByName"][role["name"]] = role
-            # --------------- Handle embedded nodes by pushing them back in cluster
-            if 'nodes' in role:
-                for node in role["nodes"]:
-                    if 'role' in node and node['role'] != role['name']:
-                        ERROR("Node {}: role mismatch: '{}' != '{}'".format(node["name"], node['role'], role["name"]))
-                    node["role"] = role["name"]
-                    model["cluster"]["nodes"].append(node)
-                del role['nodes']
-            # -------------- Zone
-            zoneName = locate("zone", role, model["cluster"], "Role '{}': Missing zone definition (And no default value in cluster definition)".format(role["name"]))
-            if zoneName not in model["infra"]["zoneByName"]:
-                ERROR("Role '{}': Unknow zone '{}'".format(role["name"], zoneName))
-            role["zone"] = zoneName
-            zone = model["infra"]["zoneByName"][zoneName]
-            role["network"] = model["infra"]["networkByName"][zone["network"]]
-            # ------------- domain
-            role['domain'] = locate("domain", role, model["cluster"], "Role '{}': Missing domain definition (And no default value in cluster definition)".format(role["name"]))
-            # ------------- Template
-            tmplName = locate("kvm_template", role, model["cluster"], "Role '{}': Missing kvm_template definition (And no default value in cluster definition)".format(role["name"]))
-            if tmplName not in model["infra"]["kvmTemplateByName"]:
-                ERROR("Role '{}': Unknow kvm_template '{}'".format(role["name"], tmplName))
-            role["kvmTemplate"] = model["infra"]["kvmTemplateByName"][tmplName]
-            # Handle root disk logical volumes
-            if 'root_lvs' in role:
-                vgSize = 0
-                modifiedLv = set()
-                for lv in role["root_lvs"]:
-                    modifiedLv.add(lv["name"])
-                    if "rootLvByName" not in role["kvmTemplate"] or lv["name"] not in role['kvmTemplate']['rootLvByName']:
-                        ERROR("Role '{}': Logical volume '{}' does not exists in the template".format(role["name"], lv["name"]))
-                    else:
-                        templateLv = role['kvmTemplate']['rootLvByName'][lv["name"]]
-                        lv['fstype'] = templateLv["fstype"]
-                        lv["volgroup"] = role['kvmTemplate']['root_vg_name'] # Only one VG handled
-                        vgSize += lv["size"]
-                        if lv["size"] < templateLv["size"]:
-                            ERROR("Role '{}': Logical volume '{}': size ({}GB) can't be lower than the one from template ({}GB) (Can't shrink LV)".format(role["name"], lv['name'], lv['size'], templateLv['size']))
-                # To have accurate vg size, must add unmodified lv size
-                for tmplLvName, tmplLv in role['kvmTemplate']['rootLvByName'].iteritems():
-                    if tmplLvName not in modifiedLv:
-                        vgSize += tmplLv['size'] 
-                if vgSize >= role['kvmTemplate']["root_vg_size"]:
-                    ERROR("Role '{}': Sum of all root LV must not exceed or equal template root PV ({} >= {})".format(role["name"], vgSize, role['kvmTemplate']["root_vg_size"]))
-            # ------------------------------------ Data disks
-            if "data_disks" in role:
-                for i in range(0, len(role['data_disks'])):
-                    role['data_disks'][i]['device'] = model['infra']['deviceFromIndex'][i]
-                disksToMount = 0
-                for d in role['data_disks']:
-                    if "mount" in d:
-                        disksToMount += 1
-                role["disksToMountCount"] = disksToMount
-            else:
-                role["disksToMountCount"] = 0
+    for rl in model["cluster"]["roles"]:
+        role = copy.deepcopy(rl)
+        model["data"]["roleByName"][role["name"]] = role
+        # --------------- Handle embedded nodes by pushing them back in cluster
+        if 'nodes' in role:
+            for node in role["nodes"]:
+                if 'role' in node and node['role'] != role['name']:
+                    ERROR("Node {}: role mismatch: '{}' != '{}'".format(node["name"], node['role'], role["name"]))
+                node["role"] = role["name"]
+                model["cluster"]["nodes"].append(node)
+            del role['nodes']
+        role['nodes'] = [] # Replace by an array of name
+        # -------------- Zone
+        zoneName = locate("zone", role, model["cluster"], "Role '{}': Missing zone definition (And no default value in cluster definition)".format(role["name"]))
+        if zoneName not in model["infra"]["zoneByName"]:
+            ERROR("Role '{}': Unknow zone '{}'".format(role["name"], zoneName))
+        role["zone"] = zoneName
+        zone = model["infra"]["zoneByName"][zoneName]
+        role["network"] = model["infra"]["networkByName"][zone["network"]]
+        # ------------- domain
+        role['domain'] = locate("domain", role, model["cluster"], "Role '{}': Missing domain definition (And no default value in cluster definition)".format(role["name"]))
+        # ------------- Template
+        tmplName = locate("kvm_template", role, model["cluster"], "Role '{}': Missing kvm_template definition (And no default value in cluster definition)".format(role["name"]))
+        if tmplName not in model["infra"]["kvmTemplateByName"]:
+            ERROR("Role '{}': Unknow kvm_template '{}'".format(role["name"], tmplName))
+        role["kvmTemplate"] = model["infra"]["kvmTemplateByName"][tmplName]
+        # ---------------- Handle root disk logical volumes
+        if 'root_lvs' in role:
+            vgSize = 0
+            modifiedLv = set()
+            for lv in role["root_lvs"]:
+                modifiedLv.add(lv["name"])
+                if "rootLvByName" not in role["kvmTemplate"] or lv["name"] not in role['kvmTemplate']['rootLvByName']:
+                    ERROR("Role '{}': Logical volume '{}' does not exists in the template".format(role["name"], lv["name"]))
+                else:
+                    templateLv = role['kvmTemplate']['rootLvByName'][lv["name"]]
+                    lv['fstype'] = templateLv["fstype"]
+                    lv["volgroup"] = role['kvmTemplate']['root_vg_name'] # Only one VG handled
+                    vgSize += lv["size"]
+                    if lv["size"] < templateLv["size"]:
+                        ERROR("Role '{}': Logical volume '{}': size ({}GB) can't be lower than the one from template ({}GB) (Can't shrink LV)".format(role["name"], lv['name'], lv['size'], templateLv['size']))
+            # To have accurate vg size, must add unmodified lv size
+            for tmplLvName, tmplLv in role['kvmTemplate']['rootLvByName'].iteritems():
+                if tmplLvName not in modifiedLv:
+                    vgSize += tmplLv['size'] 
+            if vgSize >= role['kvmTemplate']["root_vg_size"]:
+                ERROR("Role '{}': Sum of all root LV must not exceed or equal template root PV ({} >= {})".format(role["name"], vgSize, role['kvmTemplate']["root_vg_size"]))
+        # ------------------------------------ Data disks
+        if "data_disks" in role:
+            for i in range(0, len(role['data_disks'])):
+                role['data_disks'][i]['device'] = model['infra']['deviceFromIndex'][i]
+            disksToMount = 0
+            for d in role['data_disks']:
+                if "mount" in d:
+                    disksToMount += 1
+            role["disksToMountCount"] = disksToMount
+        else:
+            role["disksToMountCount"] = 0
     # ----------------------------------------- Handle nodes
     nodeByIp = {}  # Just to check duplicated ip
     nodeByName = {} # Currently, just to check duplicated name. May be set in 'data' if usefull
@@ -117,6 +117,7 @@ def groom(module, model):
         if node['role'] not in model['data']['roleByName']:
             ERROR("Node '{}' reference an unexisting role ({})".format(node["name"], node['role']))
         role =  model['data']['roleByName'][node['role']]
+        role['nodes'].append(node["name"])
         node["fqdn"] = node['hostname'] + "." + role['domain']
         ip = node['ip'] = resolveDns(node['fqdn'])
         if ip == None:
@@ -155,7 +156,17 @@ def groom(module, model):
             dataDisksByNode[node["name"]] = dataDisks
         memoryByHost[host['name']]['sum'] += role['memory']
         memoryByHost[host['name']]['detail'][node['name']] = role['memory']
-    
+    # -------------------------- Build ansible groups
+    model["data"]["groupByName"] = {}
+    for _, role in model['data']['roleByName'].iteritems():
+        # ---------------- Handle ansible groups
+        if not 'groups' in role:
+            role['groups'] = [ role["name"] ]
+        for grp in role["groups"]:
+            if grp not in  model["data"]["groupByName"]:
+                 model["data"]["groupByName"][grp] = []
+            for nodeName in role['nodes']:
+                model["data"]["groupByName"][grp].append(nodeName)
     print "------------- Memory usage per host"
     l = list( model['data']['memoryByHost'].keys())
     for h in sorted(l):

@@ -53,6 +53,10 @@ mapping:
         "kvm_template": { type: str, required: false, unique: yes }
         "nodes":
           include: node_list
+        "groups":       # defaut value is an array of a single element with role name. (Will create an ansible group with this role name). Set group: [] if you do not want an ansible group of this role.
+          type: seq
+          sequence:
+          - type: str
         "data_disks":
           type: seq 
           required: false

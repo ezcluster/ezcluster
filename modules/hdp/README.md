@@ -1,5 +1,10 @@
 # HDP module
 
+- Roles are copied from [`https://github.com/hortonworks/ansible-hortonworks`](https://github.com/hortonworks/ansible-hortonworks), without modification
+
+- `prepare_nodes.yml`, `install_ambari.yml`, `configure_ambari.yml`, `apply_blueprint.yml` and `post_install.yml` are also copied from this repo, without modification 
+
+
 ## Expected repository layout:
 
 ``` 
