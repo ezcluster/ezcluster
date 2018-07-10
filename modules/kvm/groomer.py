@@ -25,6 +25,8 @@ def resolveDns(fqdn):
 
 def groom(module, model):
     model['data']['kvmScriptsPath'] = appendPath(module.path, "scripts")
+    if 'nodes' not in model["cluster"]:
+        model['cluster']['nodes'] = []
     # ------------------------------------------- Prepare memoryByHost
     memoryByHost = {}
     model['data']['memoryByHost'] = memoryByHost
@@ -40,9 +42,17 @@ def groom(module, model):
     # ----------------------------------------- Handle roles
     model["data"]["roleByName"] = {}
     if 'roles' in model['cluster']:
-        for ptrn in model["cluster"]["roles"]:
-            role = copy.deepcopy(ptrn)
+        for rl in model["cluster"]["roles"]:
+            role = copy.deepcopy(rl)
             model["data"]["roleByName"][role["name"]] = role
+            # --------------- Handle embedded nodes by pushing them back in cluster
+            if 'nodes' in role:
+                for node in role["nodes"]:
+                    if 'role' in node and node['role'] != role['name']:
+                        ERROR("Node {}: role mismatch: '{}' != '{}'".format(node["name"], node['role'], role["name"]))
+                    node["role"] = role["name"]
+                    model["cluster"]["nodes"].append(node)
+                del role['nodes']
             # -------------- Zone
             zoneName = locate("zone", role, model["cluster"], "Role '{}': Missing zone definition (And no default value in cluster definition)".format(role["name"]))
             if zoneName not in model["infra"]["zoneByName"]:
@@ -90,57 +100,62 @@ def groom(module, model):
             else:
                 role["disksToMountCount"] = 0
     # ----------------------------------------- Handle nodes
-    if 'nodes' in model['cluster']:
-        nodeByIp = {}  # Just to check duplicated ip
-        dataDisksByNode = {}
-        model['data']['dataDisksByNode'] = dataDisksByNode
-        for node in model['cluster']['nodes']:
-            if not 'hostname' in node:
-                node['hostname'] = node['name']
-            if "vmname" not in node:
-                node['vmname'] = model['cluster']['id'] + "_" + node['name']
-            if node['role'] not in model['data']['roleByName']:
-                ERROR("Node '{}' reference an unexisting role ({})".format(node["name"], node['role']))
-            role =  model['data']['roleByName'][node['role']]
-            node["fqdn"] = node['hostname'] + "." + role['domain']
-            ip = node['ip'] = resolveDns(node['fqdn'])
-            if ip == None:
-                ERROR("Unable to lookup an IP for node '{0}' ({1})'.".format(node['name'], node['fqdn']))
-            if ip not in nodeByIp:
-                nodeByIp[ip] = node
+    nodeByIp = {}  # Just to check duplicated ip
+    nodeByName = {} # Currently, just to check duplicated name. May be set in 'data' if usefull
+    dataDisksByNode = {}
+    model['data']['dataDisksByNode'] = dataDisksByNode
+    for node in model['cluster']['nodes']:
+        if node['name'] in nodeByName:
+            ERROR("Node '{}' is defined twice!".format(node['name']))
+        nodeByName[node['name']] = node
+        if not 'hostname' in node:
+            node['hostname'] = node['name']
+        if "vmname" not in node:
+            node['vmname'] = model['cluster']['id'] + "_" + node['name']
+        if 'role' not in node:
+            ERROR("Node '{}': Missing role definition".format(node["name"]))
+        if node['role'] not in model['data']['roleByName']:
+            ERROR("Node '{}' reference an unexisting role ({})".format(node["name"], node['role']))
+        role =  model['data']['roleByName'][node['role']]
+        node["fqdn"] = node['hostname'] + "." + role['domain']
+        ip = node['ip'] = resolveDns(node['fqdn'])
+        if ip == None:
+            ERROR("Unable to lookup an IP for node '{0}' ({1})'.".format(node['name'], node['fqdn']))
+        if ip not in nodeByIp:
+            nodeByIp[ip] = node
+        else:
+            ERROR("Same IP ({}) used for both node '{}' and '{}'".format(ip, nodeByIp[ip]['name'], node['name']))
+        network =  role["network"]
+        node['network'] = network['name']
+        if ipaddress.ip_address(u"" + ip) not in network['cidr']:
+            ERROR("IP '{}' not in network '{}' for node {}".format(ip, network['name'], node['name']))
+        if 'root_volume_index' in node:
+            idx = node['root_volume_index']
+        else:
+            idx = 0
+        if node['host'] not in model['infra']['hostByName']:
+            ERROR("Node '{}' reference an unexisting host ({})".format(node["name"], node['host']))
+        host = model['infra']['hostByName'][node['host']]
+        nbrRootVolumes = len(host['root_volumes'])
+        node['rootVolume'] = host['root_volumes'][idx % nbrRootVolumes]['path']
+        # Handle data disk
+        if 'data_disks' in role and len(role["data_disks"]) > 0:
+            dataDisks = copy.deepcopy(role['data_disks'])
+            nbrDataVolume = len(model['infra']['hostByName'][node['host']]['data_volumes'])
+            if "data_volume_index" in node:
+                for i in range(len(dataDisks)):
+                    dataDisks[i]['volume'] = model['infra']['hostByName'][node['host']]['data_volumes'][(i + node['data_volume_index']) % nbrDataVolume]['path']
+            elif "data_volume_indexes" in node:
+                if len(node['data_volume_indexes']) != len(dataDisks):
+                    ERROR("Node {0}: data_volume_indexes size ({1} != role.data_disks size ({2})".format(node['name'], node['data_volume_indexes'], len(dataDisks)))
+                for i in range(len(dataDisks)):
+                    dataDisks[i]['volume'] = model['infra']['hostByName'][node['host']]['data_volumes'][node['data_volume_indexes'][i] % nbrDataVolume]['path']
             else:
-                ERROR("Same IP ({}) used for both node '{}' and '{}'".format(ip, nodeByIp[ip]['name'], node['name']))
-            network =  role["network"]
-            node['network'] = network['name']
-            if ipaddress.ip_address(u"" + ip) not in network['cidr']:
-                ERROR("IP '{}' not in network '{}' for node {}".format(ip, network['name'], node['name']))
-            if 'root_volume_index' in node:
-                idx = node['root_volume_index']
-            else:
-                idx = 0
-            if node['host'] not in model['infra']['hostByName']:
-                ERROR("Node '{}' reference an unexisting host ({})".format(node["name"], node['host']))
-            host = model['infra']['hostByName'][node['host']]
-            nbrRootVolumes = len(host['root_volumes'])
-            node['rootVolume'] = host['root_volumes'][idx % nbrRootVolumes]['path']
-            # Handle data disk
-            if 'data_disks' in role and len(role["data_disks"]) > 0:
-                dataDisks = copy.deepcopy(role['data_disks'])
-                nbrDataVolume = len(model['infra']['hostByName'][node['host']]['data_volumes'])
-                if "data_volume_index" in node:
-                    for i in range(len(dataDisks)):
-                        dataDisks[i]['volume'] = model['infra']['hostByName'][node['host']]['data_volumes'][(i + node['data_volume_index']) % nbrDataVolume]['path']
-                elif "data_volume_indexes" in node:
-                    if len(node['data_volume_indexes']) != len(dataDisks):
-                        ERROR("Node {0}: data_volume_indexes size ({1} != role.data_disks size ({2})".format(node['name'], node['data_volume_indexes'], len(dataDisks)))
-                    for i in range(len(dataDisks)):
-                        dataDisks[i]['volume'] = model['infra']['hostByName'][node['host']]['data_volumes'][node['data_volume_indexes'][i] % nbrDataVolume]['path']
-                else:
-                    ERROR("Node {0}: Either 'data_volume_index' or 'data_volume_indexes' must be defined!".format(node['name']))
-                dataDisksByNode[node["name"]] = dataDisks
-            memoryByHost[host['name']]['sum'] += role['memory']
-            memoryByHost[host['name']]['detail'][node['name']] = role['memory']
-        
+                ERROR("Node {0}: Either 'data_volume_index' or 'data_volume_indexes' must be defined!".format(node['name']))
+            dataDisksByNode[node["name"]] = dataDisks
+        memoryByHost[host['name']]['sum'] += role['memory']
+        memoryByHost[host['name']]['detail'][node['name']] = role['memory']
+    
     print "------------- Memory usage per host"
     l = list( model['data']['memoryByHost'].keys())
     for h in sorted(l):

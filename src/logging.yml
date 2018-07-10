@@ -22,7 +22,7 @@ loggers:
     handlers: [console]
     propagate: no
   ezcluster.modules:
-    level: DEBUG
+    level: INFO
     handlers: [console]
     propagate: no
 root:

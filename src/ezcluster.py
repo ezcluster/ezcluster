@@ -52,6 +52,10 @@ def main():
 
     schema = buildSchema(mydir, modules)
 
+    if param.dump:
+        dumper = Dumper(targetFolder)
+        dumper.dump("schema.json", schema)
+
     k = kwalify(source_data = cluster, schema_data=schema)
     k.validate(raise_exception=False)
     if len(k.errors) != 0:
@@ -75,8 +79,6 @@ def main():
         
 
     if param.dump:
-        dumper = Dumper(targetFolder)
-        dumper.dump("schema.json", schema)
         dumper.dump("cluster.json", model['cluster'])
         dumper.dump("data.json", model['data'])
         dumper.dump("infra.json", model['infra'])
