@@ -47,32 +47,33 @@ class Module:
                 if not filename == ".gitignore":
                     sourceFile = os.path.join(dirpath, filename)
                     targetFileName = sourceFile[pref:]
-                    # Handle the type and eventual suffix (Used as short comment)
-                    pos = targetFileName.rfind(".")
-                    if pos == -1:
-                        ERROR("'{0}' is not a valid file part".format(sourceFile))
-                    suffix = targetFileName[pos+1:]
-                    targetFileName = targetFileName[:pos]
-                    pos = suffix.find("-")
-                    if pos != -1:
-                        ftype = suffix[:pos]
-                        suffix = suffix[pos+1:]
+                    if targetFileName.count(".") < 2:
+                        # We pass throught non super-suffixed files
+                        order = 0
+                        ftype = "txt"
                     else:
-                        ftype = suffix
-                        suffix = None
-                    # Now order number
-                    pos = targetFileName.rfind(".")
-                    if pos == -1:
-                        ERROR("'{0}' is not a valid file part".format(sourceFile))
-                    idx = targetFileName[pos+1:]
-                    targetFileName = targetFileName[:pos]
-                    try:
-                        order  = int(idx)
-                    except ValueError:
-                        ERROR("'{0}' is not a valid file part".format(sourceFile))
-                        
+                        # Handle the type and eventual suffix (Used as short comment)
+                        pos = targetFileName.rfind(".")
+                        suffix = targetFileName[pos+1:]
+                        targetFileName = targetFileName[:pos]
+                        pos = suffix.find("-")
+                        if pos != -1:
+                            ftype = suffix[:pos]
+                            suffix = suffix[pos+1:]
+                        else:
+                            ftype = suffix
+                            suffix = None
+                        # Now order number
+                        pos = targetFileName.rfind(".")
+                        idx = targetFileName[pos+1:]
+                        targetFileName = targetFileName[:pos]
+                        try:
+                            order  = int(idx)
+                        except ValueError:
+                            ERROR("'{0}' is not a valid file part".format(sourceFile))
+                            
                     logger.debug(sourceFile + "-->" + targetFileName + "(" + str(idx) + ")")
-                    
+                        
                     if targetFileName not in targetFileByName:
                         targetFileByName[targetFileName] = {}
                         #targetFileByName[targetFileName].name = targetFileName
