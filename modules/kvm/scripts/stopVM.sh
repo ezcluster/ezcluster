@@ -38,6 +38,14 @@ done
 if [ "$NAME" = "" ]; then echo "Missing --name parameters"; usage; exit 1; fi
 if [ "$HOST" = "" ]; then echo "Missing --host parameters";	usage; exit 1; fi
 
+ssh $SSH_OPTIONS $HOST "sudo virsh list --all" | grep ${NAME}
+if [ "$?" -ne "0" ]
+then
+	echo "${HOST}: ${NAME} not existing"
+	exit 1
+fi
+
+
 if [[ "$FORCE" == Y ]]
 then
 	echo "Force stopping the VM ${NAME}"
