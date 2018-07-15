@@ -34,10 +34,10 @@ accept_gpl: yes                                           # set to yes to allow 
 security: '{{{ m.cluster.hdp.security }}}'                                          # can be set to 'none', 'mit-kdc' or 'active-directory'
 {%% if m.cluster.hdp.security != 'none' %%}
 security_options:
-  external_hostname: ''                                   # if this is empty, Ansible will install and prepare the MIT KDC on the Ambari node
-  realm: 'EXAMPLE.COM'
-  admin_principal: 'admin'                                # the Kerberos principal that has the permissions to create new users (don't append the realm)
-  admin_password: 'AsdQwe123'
+  external_hostname: '{{{ m.infra.zoneByName[m.cluster.zone].kerberos.admin_server }}}'                                   # if this is empty, Ansible will install and prepare the MIT KDC on the Ambari node
+  realm: '{{{ m.infra.zoneByName[m.cluster.zone].kerberos.realm }}}'
+  admin_principal: '{{{ m.infra.zoneByName[m.cluster.zone].kerberos.admin_user }}}'                                # the Kerberos principal that has the permissions to create new users (don't append the realm)
+  admin_password: '{{{ m.infra.zoneByName[m.cluster.zone].kerberos.admin_password }}}'
   kdc_master_key: 'AsdQwe123'                             # only used when security is set to 'mit-kdc' and KDC is to be installed
   ldap_url: 'ldaps://ad.example.com:636'                  # only used when security is set to 'active-directory'
   container_dn: 'OU=hadoop,DC=example,DC=com'             # only used when security is set to 'active-directory'
