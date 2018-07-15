@@ -1,0 +1,11 @@
+
+- name: ============================================================================= LDAP CLIENT
+  hosts: all
+  vars:
+    openldap_server: "{{{ m.infra.zoneByName[m.cluster.zone].ldap.server }}}"
+    openldap_suffix: "{{{ m.infra.zoneByName[m.cluster.zone].ldap.suffix}}}"
+  roles:
+  - { role: openldap_client, tags: [ "ldap", "ldap_client" ] }
+  
+  
+  

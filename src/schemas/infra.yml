@@ -94,6 +94,7 @@ mapping:
           - type: map
             mapping:
               "path": { type: str, required: true }  
+              "device": { type: str, required: false }  
     
     
     
