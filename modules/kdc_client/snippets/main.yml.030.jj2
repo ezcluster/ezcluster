@@ -1,0 +1,16 @@
+
+- name: ========================================================================= KERBEROS CLIENT
+  hosts: all
+  vars:
+    kdc_realm: {{{ m.infra.zoneByName[m.cluster.zone].kerberos.realm }}}
+    kdc_domains: 
+    - .{{{  m.cluster.domain }}}
+    kdc_server: {{{ m.infra.zoneByName[m.cluster.zone].kerberos.admin_server }}}
+    kdc_admin_server: {{{ m.infra.zoneByName[m.cluster.zone].kerberos.admin_server }}}
+    kdc_admin_user: {{{ m.infra.zoneByName[m.cluster.zone].kerberos.admin_user }}}
+    kdc_admin_password: {{{ m.infra.zoneByName[m.cluster.zone].kerberos.admin_password }}}
+  roles:
+  - { role: kdc_client, tags: [ "kdc", "kdc_client" ] }
+  
+  
+  

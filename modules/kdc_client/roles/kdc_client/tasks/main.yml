@@ -1,0 +1,62 @@
+---
+# Copyright (C) 2016 BROADSoftware
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#    http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+#limitations under the License.
+#
+
+
+# https://gist.github.com/ashrithr/4767927948eca70845db
+# http://web.mit.edu/kerberos/krb5-1.13/doc/index.html
+# http://www.linuxjournal.com/article/7336?page=0,3
+# https://www.linux.iastate.edu/content/using-pam-kerberos-authentication-and-group-access-control
+
+- name: Install kerberos client
+  yum: pkg=krb5-workstation,pam_krb5,authconfig state=present
+
+- name: Configure krb5.conf
+  template: src=krb5.conf.j2 dest=/etc/krb5.conf owner=root group=root mode=0644
+
+
+- name: Fetch existing principals
+  shell: kadmin -p {{kdc_admin_user}}/admin -w {{kdc_admin_password}} -q "listprincs"
+  register: listprincs
+  changed_when: false
+
+- name: Register as host
+  shell: kadmin -p {{kdc_admin_user}}/admin -w {{kdc_admin_password}} -q "addprinc -randkey host/{{ansible_fqdn}}"
+  when: listprincs.stdout.find("host/"+ ansible_fqdn) == -1
+
+- name: And generate host keytab
+  shell: kadmin -p {{kdc_admin_user}}/admin -w {{kdc_admin_password}} -q "ktadd host/{{ansible_fqdn}}"
+  args:
+    creates: /etc/krb5.keytab
+
+- name: Setup kerberos on ssh
+  lineinfile: dest=/etc/ssh/sshd_config regexp=KerberosAuthentication line="KerberosAuthentication yes"
+- lineinfile: dest=/etc/ssh/sshd_config regexp=KerberosOrLocalPasswd line="KerberosOrLocalPasswd no"
+- lineinfile: dest=/etc/ssh/sshd_config regexp=KerberosTicketCleanup line="KerberosTicketCleanup yes"
+- lineinfile: dest=/etc/ssh/sshd_config regexp=KerberosUseKuserok line="KerberosUseKuserok yes"
+- lineinfile: dest=/etc/ssh/sshd_config regexp=GSSAPIAuthentication line="GSSAPIAuthentication yes"
+- lineinfile: dest=/etc/ssh/sshd_config regexp=GSSAPICleanupCredentials line="GSSAPICleanupCredentials yes"
+
+- name: check if kerberos is included in PAM
+  shell: grep krb5 /etc/pam.d/system-auth
+  register: grep_krb5
+  changed_when: false
+  failed_when: false
+
+- name: Enable kerberos in PAM
+  shell: authconfig --enablekrb5 --update
+  when: grep_krb5.rc != 0
+  
+  

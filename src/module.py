@@ -121,5 +121,5 @@ def buildTargetFileByName(modules):
             ERROR("Invalid type '{0}' for file '{1}'. (module:'{2}', target:'{3}'). Only {4} are allowed".format(refType, name, targetFile["fileParts"][0]['module'], targetFile["fileParts"][0]['name'], str(validType)))
         for fp in targetFile['fileParts']:
             if fp['type'] != refType:
-                ERROR("Type mismatch for file target:'{0}' in module:'{1}'. All type for a target must be same ('{2}' != '{3}')".format(name, targetFile["fileParts"][0]['module'], fp['type'], refType))
+                ERROR("Type mismatch for file target:'{}'. All type for a target must be same ('{}' != '{}')".format(name, fp['type'], refType))
     return targetFileByName

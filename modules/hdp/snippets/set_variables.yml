@@ -115,18 +115,18 @@
           with_items: "{{ hostvars[groups['ambari-server']|sort|list|first]['blueprint_dynamic'] }}"
           no_log: True
 
-        - debug: var=namenode_groups
-        - debug: var=resourcemanager_groups
-        - debug: var=journalnode_groups
-        - debug: var=zookeeper_groups
-        - debug: var=zookeeper_hosts
-        - debug: var=hiveserver_hosts
-        - debug: var=oozie_hosts
-        - debug: var=rangeradmin_groups
-        - debug: var=rangeradmin_hosts
-        - debug: var=streamline_hosts
-        - debug: var=registry_hosts
-        - debug: var=hdf_hosts
+#        - debug: var=namenode_groups
+#        - debug: var=resourcemanager_groups
+#        - debug: var=journalnode_groups
+#        - debug: var=zookeeper_groups
+#        - debug: var=zookeeper_hosts
+#        - debug: var=hiveserver_hosts
+#        - debug: var=oozie_hosts
+#        - debug: var=rangeradmin_groups
+#        - debug: var=rangeradmin_hosts
+#        - debug: var=streamline_hosts
+#        - debug: var=registry_hosts
+#        - debug: var=hdf_hosts
     
         - name: Set the install_hdp variable
           set_fact:

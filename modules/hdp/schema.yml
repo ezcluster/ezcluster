@@ -29,7 +29,16 @@ mapping:
           - SPARK_CLIENT
           - SPARK2_CLIENT
           - HBASE_CLIENT
-          
+      "dfs_datanode_dirs":
+        type: seq
+        required: true
+        sequence:
+        - type: str
+      "kafka_log_dirs":
+        type: seq
+        required: true
+        sequence:
+        - type: str
 
   "roles":
     type: seq

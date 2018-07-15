@@ -60,3 +60,13 @@ blueprint_dynamic:                                              # properties for
     services: {{{ role.hdp_services }}}
 {%% endif %%}
 {%% endfor %%}
+
+dfs_datanode_dirs:
+{%% for dir in m.cluster.hdp.dfs_datanode_dirs %%}
+- {{{ dir }}}
+{%% endfor %%}
+
+kafka_log_dirs:
+{%% for dir in m.cluster.hdp.kafka_log_dirs %%}
+- {{{ dir }}}
+{%% endfor %%}

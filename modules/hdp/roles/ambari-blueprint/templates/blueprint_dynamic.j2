@@ -328,7 +328,11 @@
 {% if rangeradmin_hosts|length > 0 and ranger_options.enable_plugins|default(no) %}
         "dfs.namenode.inode.attributes.provider.class" : "org.apache.ranger.authorization.hadoop.RangerHdfsAuthorizer",
 {% endif %}
+{% if dfs_datanode_dirs is defined %}
+        "dfs.datanode.data.dir" : "{% for dir in dfs_datanode_dirs %}{% if not loop.first %},{%endif%}{{ dir }}/hadoop/hdfs/data{% endfor %}",
+{% else %}
         "dfs.datanode.data.dir" : "/hadoop/hdfs/data",
+{% endif %}
         "dfs.datanode.failed.volumes.tolerated" : "0",
         "dfs.replication" : "3"
       }
@@ -495,6 +499,9 @@
         "authorizer.class.name" : "org.apache.ranger.authorization.kafka.authorizer.RangerKafkaAuthorizer",
 {% endif %}
         "zookeeper.session.timeout.ms" : "30000"
+{% if kafka_log_dirs is defined %}
+        ,"log.dirs" : "{% for dir in kafka_log_dirs %}{% if not loop.first %},{%endif%}{{ dir }}/kafka_logs{% endfor %}"
+{% endif %}
       }
     },
     {
