@@ -1,0 +1,8 @@
+
+{%% for host in m.data.groupByName.broker %%}
+{%% if host == m.node.name %%}
+kafka:
+  broker:
+    id: {{{ loop.index }}}
+{%% endif %%}
+{%% endfor %%}

@@ -10,6 +10,10 @@ JOPTS="$JOPTS -Dlog4j.configuration=file:/etc/ktail/log4j.xml"
 # Set brokers
 {% if 'kafka_brokers' in groups %}
 OPTS="$OPTS --brokers {% for host in groups['kafka_brokers'] %}{% if not loop.first %},{% endif %}{{  hostvars[host]['ansible_fqdn'] }}:{{kafka_port}}{% endfor %}"
+{% elif 'brokers' in groups %}
+OPTS="$OPTS --brokers {% for host in groups['brokers'] %}{% if not loop.first %},{% endif %}{{  hostvars[host]['ansible_fqdn'] }}:{{kafka_port}}{% endfor %}"
+{% elif 'broker' in groups %}
+OPTS="$OPTS --brokers {% for host in groups['broker'] %}{% if not loop.first %},{% endif %}{{  hostvars[host]['ansible_fqdn'] }}:{{kafka_port}}{% endfor %}"
 {% elif kafka_broker_hosts is defined %}
 OPTS="$OPTS --brokers  {% for host in kafka_broker_hosts %}{% if not loop.first %},{% endif %}{{  hostvars[host]['ansible_fqdn'] }}:{{kafka_port}}{% endfor %}"
 {% else %}

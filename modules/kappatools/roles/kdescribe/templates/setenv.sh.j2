@@ -11,6 +11,8 @@ JOPTS="$JOPTS -Dlog4j.configuration=file:/etc/kdescribe/log4j.xml"
 # OPTS="$OPTS --zookeeper 'zk1:2181,zk2:2181,zk3:2181'"
 {% if 'zookeepers' in groups %}
 OPTS="$OPTS --zookeeper {% for host in groups['zookeepers'] %}{% if not loop.first %},{% endif %}{{  hostvars[host]['ansible_fqdn'] }}:2181{% endfor %}"
+{% elif 'zookeeper' in groups %}
+OPTS="$OPTS --zookeeper {% for host in groups['zookeeper'] %}{% if not loop.first %},{% endif %}{{  hostvars[host]['ansible_fqdn'] }}:2181{% endfor %}"
 {% elif zookeeper_hosts is defined %}
 OPTS="$OPTS --zookeeper  {% for host in zookeeper_hosts %}{% if not loop.first %},{% endif %}{{  hostvars[host]['ansible_fqdn'] }}:2181{% endfor %}"
 {% endif %}

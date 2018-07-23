@@ -1,0 +1,11 @@
+
+
+type: map
+mapping:
+  "confluent":
+    type: map
+    required: true
+    mapping:
+      "security": { type: str, required: true,  enum: [ 'plaintext', 'ssl', 'sasl_ssl' ]  }
+      "version": { type: str, required: true }
+      

@@ -1,0 +1,18 @@
+
+security_mode: '{{{ m.cluster.confluent.security }}}'           
+
+confluent:
+  package_name: confluent-platform-2.11
+  repository:
+    debian:
+    redhat:
+      main:
+        baseurl: https://packages.confluent.io/rpm/{{{ m.cluster.confluent.version }}}
+        gpgcheck: 1
+        gpgkey: https://packages.confluent.io/rpm/{{{ m.cluster.confluent.version }}}/archive.key
+        enabled: 1
+      dist:
+        baseurl: https://packages.confluent.io/rpm/{{{ m.cluster.confluent.version }}}/7
+        gpgcheck: 1
+        gpgkey:  https://packages.confluent.io/rpm/{{{ m.cluster.confluent.version }}}/archive.key
+        enabled: 1

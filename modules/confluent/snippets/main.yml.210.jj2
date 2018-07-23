@@ -1,0 +1,60 @@
+
+- hosts: controllers
+  tasks:
+  - name: Install rsync"
+    yum: 
+      name: rsync 
+      state: present
+    tags: [ "confluent", "cp-init" ]
+  - import_role:
+      name: confluent.ssl_CA
+    tags: [ "confluent", "cp-init" ]
+    
+- hosts: zookeeper
+  tasks:
+  - import_role:
+      name: confluent.zookeeper
+    tags: [ "confluent", "cp-zookeeper" ]
+    
+- hosts: broker
+  tasks:
+  - import_role:
+      name: confluent.kafka-broker    
+    tags: [ "confluent", "cp-broker" ]
+      
+- hosts: schema-registry
+  tasks:
+  - import_role:
+      name: confluent.schema-registry
+    tags: [ "confluent", "cp-schema-registry" ]
+
+- hosts: connect-distributed
+  tasks:
+  - import_role:
+      name: confluent.connect-distributed
+    tags: [ "confluent", "cp-connect" ]
+
+- hosts: control-center
+  tasks:
+  - import_role:
+      name: confluent.control-center
+    tags: [ "confluent", "cp-control-center" ]
+
+- hosts: kafka-rest
+  tasks:
+  - import_role:
+      name: confluent.kafka-rest
+    tags: [ "confluent", "cp-kafka-rest" ]
+
+- hosts: ksql
+  tasks:
+  - import_role:
+      name: confluent.ksql
+    tags: [ "confluent", "cp-ksql" ]
+
+- hosts: kafka-tools
+  tasks:
+  - import_role:
+      name: confluent.ksql
+    tags: [ "confluent", "cp-tools" ]
+            

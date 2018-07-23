@@ -103,6 +103,8 @@ def groom(module, model):
     nodeByIp = {}  # Just to check duplicated ip
     nodeByName = {} # Currently, just to check duplicated name. May be set in 'data' if usefull
     dataDisksByNode = {}
+    model["data"]["groupByName"] = {}
+
     model['data']['dataDisksByNode'] = dataDisksByNode
     for node in model['cluster']['nodes']:
         if node['name'] in nodeByName:
@@ -156,8 +158,13 @@ def groom(module, model):
             dataDisksByNode[node["name"]] = dataDisks
         memoryByHost[host['name']]['sum'] += role['memory']
         memoryByHost[host['name']]['detail'][node['name']] = role['memory']
+        # Handle ansible groups binding
+        if "groups" in node:
+            for grp in node["groups"]:
+                if grp not in  model["data"]["groupByName"]:
+                    model["data"]["groupByName"][grp] = []
+                model["data"]["groupByName"][grp].append(node["name"])
     # -------------------------- Build ansible groups
-    model["data"]["groupByName"] = {}
     for _, role in model['data']['roleByName'].iteritems():
         # ---------------- Handle ansible groups
         if not 'groups' in role:
