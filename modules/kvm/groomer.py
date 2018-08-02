@@ -1,32 +1,99 @@
 
+import logging
 import os
 import copy
-from misc import ERROR, appendPath
+from misc import ERROR, appendPath, locate
 import socket
 import ipaddress
+import yaml
+from pykwalify.core import Core as kwalify
 
-def locate(key, dict1, dict2, errmsg):
-    if key in dict1:
-        return dict1[key]
+
+
+loggerConfig = logging.getLogger("ezcluster.config")
+
+      
+def findConfig(fileName, initial, location, cpt):
+    x = os.path.join(location , fileName)
+    if os.path.isfile(x):
+        # Found !
+        loggerConfig.info("Use '{0}' as config file".format(x))
+        return x
+        #return edict(yaml.load(open(x)))
     else:
-        if key in dict2:
-            return dict2[key]
+        if location == "" or location == "/" :
+            ERROR("Unable to locate a {0} file in '{1}' and upward".format(fileName, initial))
         else:
-            ERROR(errmsg)
+            if cpt < 20:
+                return findConfig(fileName, initial, os.path.dirname(location), cpt + 1)
+            else:
+                raise Exception("Too many lookup")
 
 
+def buildInfra(mydir, sourceFileDir):
+    infraFile = findConfig('infra/sab-infra.yml', sourceFileDir, sourceFileDir, 0)
+    infra = yaml.load(open(infraFile))
+    schema = yaml.load(open(os.path.join(mydir, "./schemas/infra.yml")))
+    k = kwalify(source_data = infra, schema_data=schema)
+    k.validate(raise_exception=False)
+    if len(k.errors) != 0:
+        ERROR("Problem {0}: {1}".format(infraFile, k.errors))
+    # ---------------------------- Network Grooming
+    infra['networkByName'] = {}
+    if 'networks' in infra:
+        for network in infra['networks']:
+            network['cidr'] = ipaddress.IPv4Network(u"" + network['base'] + "/" + network['netmask'], strict=True) 
+            if ipaddress.ip_address(u"" + network['gateway']) not in network['cidr']:
+                ERROR("Gateway '{0}' not in network {1}".format(network['gateway'], network))
+            if ipaddress.ip_address(u"" + network['broadcast']) not in network['cidr']:
+                ERROR("Broadcast '{0}' not in network {1}".format(network['broadcast'], network))
+            infra['networkByName'][network['name']] = network
+        del infra['networks']  # All network access by networkByName
+    # ----------------------------
+    infra['zoneByName'] = {}
+    if 'zones' in infra:
+        for zone in infra['zones']:
+            infra['zoneByName'][zone['name']] = zone
+        del infra['zones']
+    # ----------------------------
+    infra['hostByName'] = {}
+    if 'hosts' in infra:
+        for host in infra['hosts']:
+            infra['hostByName'][host['name']] = host
+        del infra['hosts']
+    # ----------------------
+    infra['kvmTemplateByName'] = {}
+    if 'kvm_templates' in infra:
+        for template in infra["kvm_templates"]:
+            if 'build_key_pair' in template:
+                template['build_key_pair'] = appendPath(os.path.dirname(infraFile), template['build_key_pair'])
+            if "root_lvs" in template:
+                rootLvByName = {}
+                for lv in template['root_lvs']:
+                    rootLvByName[lv["name"]] = lv
+                    del lv["name"]
+                template['rootLvByName'] = rootLvByName
+                del template["root_lvs"]
+            infra['kvmTemplateByName'][template['name']] = template
+        del infra['kvm_templates']
+    return infra
 
-def resolveDns(fqdn):
-    try: 
-        return socket.gethostbyname(fqdn)
-    except socket.gaierror:
-        return None
-    
+def buildRepositories(sourceFileDir):
+    repoFile = findConfig('infra/sab-repositories.yml', sourceFileDir, sourceFileDir, 0)
+    repos = yaml.load(open(repoFile))
+    return repos
 
 def groom(module, model):
+    if 'core' not in model["cluster"]["modules"]:
+        ERROR("Module 'core' is mandatory before module 'kvm'")
+    
+    infra = buildInfra(module.path, model['data']['sourceFileDir'])
+    model['infra'] = infra
+    
+    repositories = buildRepositories(model['data']['sourceFileDir'])
+    model['repositories'] = repositories
+    
     model['data']['kvmScriptsPath'] = appendPath(module.path, "scripts")
-    if 'nodes' not in model["cluster"]:
-        model['cluster']['nodes'] = []
     # ------------------------------------------- Prepare memoryByHost
     memoryByHost = {}
     model['data']['memoryByHost'] = memoryByHost
@@ -34,25 +101,9 @@ def groom(module, model):
         memoryByHost[hostName] = {}
         memoryByHost[hostName]['sum'] = 0
         memoryByHost[hostName]['detail'] = {}
-    # ------------------------------------------ Add role paths if there is any in cluster definition (May be useless now ?)
-    if 'role_paths' in model['cluster']:
-        for path in model['cluster']['role_paths']:
-            path = appendPath(model['data']['sourceFileDir'], path)
-            model['data']["rolePaths"].add(path)
     # ----------------------------------------- Handle roles
-    model["data"]["roleByName"] = {}
     for rl in model["cluster"]["roles"]:
-        role = copy.deepcopy(rl)
-        model["data"]["roleByName"][role["name"]] = role
-        # --------------- Handle embedded nodes by pushing them back in cluster
-        if 'nodes' in role:
-            for node in role["nodes"]:
-                if 'role' in node and node['role'] != role['name']:
-                    ERROR("Node {}: role mismatch: '{}' != '{}'".format(node["name"], node['role'], role["name"]))
-                node["role"] = role["name"]
-                model["cluster"]["nodes"].append(node)
-            del role['nodes']
-        role['nodes'] = [] # Replace by an array of name
+        role = model["data"]["roleByName"][rl["name"]]
         # -------------- Zone
         zoneName = locate("zone", role, model["cluster"], "Role '{}': Missing zone definition (And no default value in cluster definition)".format(role["name"]))
         if zoneName not in model["infra"]["zoneByName"]:
@@ -60,8 +111,6 @@ def groom(module, model):
         role["zone"] = zoneName
         zone = model["infra"]["zoneByName"][zoneName]
         role["network"] = model["infra"]["networkByName"][zone["network"]]
-        # ------------- domain
-        role['domain'] = locate("domain", role, model["cluster"], "Role '{}': Missing domain definition (And no default value in cluster definition)".format(role["name"]))
         # ------------- Template
         tmplName = locate("kvm_template", role, model["cluster"], "Role '{}': Missing kvm_template definition (And no default value in cluster definition)".format(role["name"]))
         if tmplName not in model["infra"]["kvmTemplateByName"]:
@@ -100,38 +149,17 @@ def groom(module, model):
         else:
             role["disksToMountCount"] = 0
     # ----------------------------------------- Handle nodes
-    nodeByIp = {}  # Just to check duplicated ip
-    nodeByName = {} # Currently, just to check duplicated name. May be set in 'data' if usefull
     dataDisksByNode = {}
-    model["data"]["groupByName"] = {}
 
     model['data']['dataDisksByNode'] = dataDisksByNode
     for node in model['cluster']['nodes']:
-        if node['name'] in nodeByName:
-            ERROR("Node '{}' is defined twice!".format(node['name']))
-        nodeByName[node['name']] = node
-        if not 'hostname' in node:
-            node['hostname'] = node['name']
         if "vmname" not in node:
             node['vmname'] = model['cluster']['id'] + "_" + node['name']
-        if 'role' not in node:
-            ERROR("Node '{}': Missing role definition".format(node["name"]))
-        if node['role'] not in model['data']['roleByName']:
-            ERROR("Node '{}' reference an unexisting role ({})".format(node["name"], node['role']))
         role =  model['data']['roleByName'][node['role']]
-        role['nodes'].append(node["name"])
-        node["fqdn"] = node['hostname'] + "." + role['domain']
-        ip = node['ip'] = resolveDns(node['fqdn'])
-        if ip == None:
-            ERROR("Unable to lookup an IP for node '{0}' ({1})'.".format(node['name'], node['fqdn']))
-        if ip not in nodeByIp:
-            nodeByIp[ip] = node
-        else:
-            ERROR("Same IP ({}) used for both node '{}' and '{}'".format(ip, nodeByIp[ip]['name'], node['name']))
         network =  role["network"]
         node['network'] = network['name']
-        if ipaddress.ip_address(u"" + ip) not in network['cidr']:
-            ERROR("IP '{}' not in network '{}' for node {}".format(ip, network['name'], node['name']))
+        if ipaddress.ip_address(u"" + node['ip']) not in network['cidr']:
+            ERROR("IP '{}' not in network '{}' for node {}".format(node['ip'], network['name'], node['name']))
         if 'root_volume_index' in node:
             idx = node['root_volume_index']
         else:
@@ -158,22 +186,6 @@ def groom(module, model):
             dataDisksByNode[node["name"]] = dataDisks
         memoryByHost[host['name']]['sum'] += role['memory']
         memoryByHost[host['name']]['detail'][node['name']] = role['memory']
-        # Handle ansible groups binding
-        if "groups" in node:
-            for grp in node["groups"]:
-                if grp not in  model["data"]["groupByName"]:
-                    model["data"]["groupByName"][grp] = []
-                model["data"]["groupByName"][grp].append(node["name"])
-    # -------------------------- Build ansible groups
-    for _, role in model['data']['roleByName'].iteritems():
-        # ---------------- Handle ansible groups
-        if not 'groups' in role:
-            role['groups'] = [ role["name"] ]
-        for grp in role["groups"]:
-            if grp not in  model["data"]["groupByName"]:
-                 model["data"]["groupByName"][grp] = []
-            for nodeName in role['nodes']:
-                model["data"]["groupByName"][grp].append(nodeName)
     print "------------- Memory usage per host"
     l = list( model['data']['memoryByHost'].keys())
     for h in sorted(l):
@@ -183,6 +195,10 @@ def groom(module, model):
         txt += " )"
         print txt
 
+def dump(module, model, dumper):
+    dumper.dump("infra.json", model['infra'])
+    dumper.dump("repositories.json", model['repositories'])
+    
 
 
 

@@ -23,4 +23,14 @@ def ensureFolder(path):
             raise
         else:
             pass
+
+
+def locate(key, dict1, dict2, errmsg):
+    if key in dict1:
+        return dict1[key]
+    else:
+        if key in dict2:
+            return dict2[key]
+        else:
+            ERROR(errmsg)
                 

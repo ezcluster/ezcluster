@@ -47,9 +47,6 @@ def main():
     logger.debug("Module path:'{}'".format(modulesPath))
     modules = buildModules(cluster, modulesPath)
 
-    infra = config.buildInfra(mydir, sourceFileDir)
-    repositories = config.buildRepositories(sourceFileDir)
-
     schema = buildSchema(mydir, modules)
 
     if param.dump:
@@ -68,22 +65,21 @@ def main():
                 
     model = {}
     model['cluster'] = cluster
-    model['infra'] = infra
-    model['repositories'] = repositories
     model['data'] = data
             
     for module in modules:
         module.groom(model)
 
     targetFileByName = buildTargetFileByName(modules)
-        
 
     if param.dump:
         dumper.dump("cluster.json", model['cluster'])
         dumper.dump("data.json", model['data'])
-        dumper.dump("infra.json", model['infra'])
-        dumper.dump("repositories.json", model['repositories'])
         dumper.dump("targetFileByName.json", targetFileByName)
+        for module in modules:
+            module.dump(model, dumper)
+        
+
     
     generate(targetFileByName, targetFolder, model, param.mark)
 

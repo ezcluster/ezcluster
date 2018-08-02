@@ -32,8 +32,20 @@ class Module:
             groomer = imp.load_source(self.name, codeFile)
             method = getattr(groomer, "groom")
             if method != None:
-                logger.debug("FOUND '{0}' method".format(str(groomer)))
+                logger.debug("FOUND '{0}' method".format(str(method)))
                 method(self, model)
+
+    def dump(self, model, dumper):
+        codeFile = appendPath(self.path, "dump.py")
+        if os.path.exists(codeFile):
+            logger.debug("Will load '{0}' as python code".format(codeFile))
+            dumperCode = imp.load_source(self.name, codeFile)
+            method = getattr(dumperCode, "groom")
+            if method != None:
+                logger.debug("FOUND '{0}' method".format(str(method)))
+                method(self, model, dumper)
+        
+
 
     def walk(self, targetFileByName):
         """ Enrich the targetFileByName structure with file from this module """
