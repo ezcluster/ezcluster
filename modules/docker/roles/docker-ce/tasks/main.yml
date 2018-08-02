@@ -1,0 +1,29 @@
+   
+- name: Add some packages for docker
+  yum: pkg=device-mapper-persistent-data,lvm2,yum-utils 
+  
+- name: Install Docker repo
+  shell: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+  args:
+    creates: /etc/yum.repos.d/docker-ce.repo
+    
+- name: install Docker itself
+  yum: pkg=docker-ce    
+
+
+- name: Start and enable docker services
+  service:
+    name: docker
+    enabled: yes
+    state: started        
+      
+
+- name: Add some user(s) to docker group
+  user:
+    name: "{{ item }}"
+    groups: docker
+    append: yes
+  with_items:  
+  - "{{ docker_users | default([]) }}"
+ 
+          

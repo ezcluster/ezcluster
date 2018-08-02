@@ -1,0 +1,16 @@
+
+- hosts: docker
+  vars:
+{%% if m.cluster.docker.users|length > 0 %%}  
+    docker_users:
+{%% for user in m.cluster.docker.users %%}
+    - {{{ user }}}
+{%% endfor %%}
+{%% else %%}
+    docker_users: []
+{%% endif %%}
+
+  roles:
+  - docker-ce
+  
+ 

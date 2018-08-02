@@ -1,0 +1,12 @@
+
+
+
+type: map
+mapping:
+  "docker":
+    type: map
+    mapping:
+      "users": 
+        type: seq
+        sequence:
+        - type: str
