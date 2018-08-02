@@ -8,7 +8,6 @@ import sys
 from pykwalify.core import Core as kwalify
 
 import misc
-import config
 from misc import ERROR
 from dumper import Dumper
 from module import buildModules, buildTargetFileByName
@@ -60,6 +59,7 @@ def main():
     
     data = {}
     data['sourceFileDir'] = sourceFileDir
+    data["targetFolder"] = targetFolder
     data['ezclusterHome'] = misc.appendPath(mydir,"..")
     data["rolePaths"] = set()
                 

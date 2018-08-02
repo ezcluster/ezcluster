@@ -1,0 +1,10 @@
+
+
+
+type: map
+mapping:
+  "vagrant":
+    type: map
+    required: true
+    mapping:
+      "box": { type: str, required: true }    

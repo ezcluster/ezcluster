@@ -1,0 +1,32 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+# All Vagrant configuration is done below. The "2" in Vagrant.configure
+# configures the configuration version (we support older styles for
+# backwards compatibility). Please don't change it unless you know what
+# you're doing.
+
+
+Vagrant.configure(2) do |config|
+ 
+  config.vm.box = "{{{ m.cluster.vagrant.box }}}"
+
+  config.vm.provider "virtualbox" do |vb|
+    #vb.gui = true
+  end
+{%% for node in m.cluster.nodes %%}
+
+  config.vm.define "{{{ node.name}}}" do |node|
+    node.vm.network "private_network", ip: "{{{node.ip}}}"
+    node.vm.hostname = "{{{ node.name }}}"
+    config.vm.provider "virtualbox" do |vb|
+		vb.name = "{{{m.cluster.id}}}_{{{ node.name }}}"
+        vb.customize ["modifyvm", :id, "--memory", "{{{ m.data.roleByName[node.role].memory * 1024 }}}"]
+    	vb.customize ["modifyvm", :id, "--cpus", "{{{ m.data.roleByName[node.role].vcpu }}}"]
+    end
+  end
+{%% endfor %%}
+
+# We don't trigger provisionning from vagrant, since it is executed for each vm individualy. Use extra.sh main.yml instead
+
+end
