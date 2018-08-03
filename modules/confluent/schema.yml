@@ -1,4 +1,17 @@
 
+schema;node_list:
+  type: seq
+  required: false
+  sequence:
+  - type: map
+    mapping:
+      "kafka_log_dirs":
+        type: seq
+        required: false
+        sequence:
+          - type: str
+            
+
 
 type: map
 mapping:
@@ -8,4 +21,16 @@ mapping:
     mapping:
       "security": { type: str, required: true,  enum: [ 'plaintext', 'ssl', 'sasl_ssl' ]  }
       "version": { type: str, required: true }
-      
+      "edition": { type: str, required: true,  enum: [ 'oss', 'ee' ]  }
+  "roles":
+    type: seq
+    required: true
+    sequence:
+    - type: map
+      mapping:
+        "kafka_log_dirs":
+          type: seq
+          required: false
+          sequence:
+            - type: str  
+        

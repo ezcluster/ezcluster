@@ -2,7 +2,12 @@
 security_mode: '{{{ m.cluster.confluent.security }}}'           
 
 confluent:
+  edition: {{{ m.cluster.confluent.edition }}}
+{%% if m.cluster.confluent.edition == "ee" %%}
   package_name: confluent-platform-2.11
+{%% elif m.cluster.confluent.edition == "oss" %%}
+  package_name: confluent-platform-oss-2.11
+{%% endif %%}
   repository:
     debian:
     redhat:

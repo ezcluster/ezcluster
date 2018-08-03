@@ -1,8 +1,12 @@
-
-{%% for host in m.data.groupByName.broker %%}
-{%% if host == m.node.name %%}
+{%% if m.node.name in m.data.groupByName.broker %%}
 kafka:
   broker:
+{%% for host in m.data.groupByName.broker %%}
+{%% if host == m.node.name %%}
     id: {{{ loop.index }}}
 {%% endif %%}
 {%% endfor %%}
+{%% if m.node.kafka_log_dirs is defined %%}
+    datadir: {{{ m.node.kafka_log_dirs }}}
+{%% endif %%}
+{%% endif %%}

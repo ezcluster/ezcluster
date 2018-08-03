@@ -1,7 +1,7 @@
 
 - hosts: controllers
   tasks:
-  - name: Install rsync"
+  - name: "Install rsync"
     yum: 
       name: rsync 
       state: present
@@ -39,6 +39,7 @@
   - import_role:
       name: confluent.control-center
     tags: [ "confluent", "cp-control-center" ]
+    when: confluent.edition == "ee"
 
 - hosts: kafka-rest
   tasks:

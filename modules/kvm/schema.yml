@@ -5,9 +5,7 @@ schema;node_list:
   sequence:
   - type: map
     mapping:
-      "name": { type: str, required: true}
       "host": { type: str, required: true}
-      "role": { type: str, required: false}
       "hostname": { type: str}
       "vmname": { type: str}
       "root_volume_index": { type: int }
@@ -17,23 +15,12 @@ schema;node_list:
         required: false
         sequence:
         - type: int
-      "groups":       # Groups can also be defined at node level. Will be added to the ones from the role
-        type: seq
-        sequence:
-        - type: str
 
 
 type: map
 mapping:
-  "id": { type: str, required: true, unique: yes }
-  "domain": { type: str, required: false, unique: yes }
   "zone": { type: str, required: false, unique: yes }
   "kvm_template": { type: str, required: false, unique: yes }
-  "role_paths":
-    type: seq
-    required: false
-    sequence:
-    - type: str  
 
   "roles":
     type: seq
@@ -41,9 +28,6 @@ mapping:
     sequence:
     - type: map
       mapping:
-        "name": { type: str, required: true}
-        "vcpu": { type: int, required: true}
-        "memory": { type: int, required: true}
         "root_lvs":
           type: seq
           required: true
@@ -53,14 +37,7 @@ mapping:
               "name": { type: str, required: true}
               "size": { type: int, required: true}
         "zone": { type: str, required: false, unique: yes }
-        "domain": { type: str, required: false, unique: yes }
         "kvm_template": { type: str, required: false, unique: yes }
-        "nodes":
-          include: node_list
-        "groups":       # defaut value is an array of a single element with role name. (Will create an ansible group with this role name). Set groups: [] if you do not want an ansible group of this role.
-          type: seq
-          sequence:
-          - type: str
         "data_disks":
           type: seq 
           required: false
@@ -72,7 +49,5 @@ mapping:
               "mode": { type: str, required: true, enum: [ 'thin', 'thick' ]  }
 
 
-  "nodes":
-    include: node_list
 
     
