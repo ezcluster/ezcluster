@@ -1,15 +1,17 @@
 #!/bin/bash
 
+NAME=virtualenv
+
 MYDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-virtualenv ${MYDIR}/../virtualenv
+virtualenv ${MYDIR}/../${NAME}
 
-source ${MYDIR}/../virtualenv/bin/activate
+source ${MYDIR}/../${NAME}/bin/activate
 
 #pip install --upgrade pip
 curl https://bootstrap.pypa.io/get-pip.py | python
 
-pip install -r ${MYDIR}/../requirements.txt
+pip install -r ${MYDIR}/requirements.txt
 
-bash
-#deactivate
+#bash
+deactivate
