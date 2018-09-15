@@ -1,0 +1,15 @@
+[Unit]
+Description=Cerebro. An elasticsearch web admin tool 
+
+[Service]
+Type=simple
+User=cerebro
+Group=cerebro
+SyslogIdentifier=cerebro
+TimeoutSec=15
+Restart=always
+ExecStart=/opt/cerebro-{{cerebro_version}}/bin/cerebro
+
+[Install]
+WantedBy=multi-user.target
+

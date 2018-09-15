@@ -1,0 +1,35 @@
+
+
+- name: Create user 'cerebro'
+  user: name=cerebro
+
+- name: Download/untar package
+  unarchive: src={{cerebro_rpm_url}} dest=/opt remote_src=yes
+  
+- name: Set appropriate permissions
+  file: dest=/opt/cerebro-{{cerebro_version}} owner=cerebro group=cerebro recurse=yes
+  
+  
+
+- name: Create cerebro service
+  template:
+    src: cerebro.service.j2
+    dest: /usr/lib/systemd/system/cerebro.service
+    owner: root
+    group: root
+    mode: 0644
+    backup: no
+  notify:
+  - reload service file      
+  - restart cerebro
+
+
+# ------------------------------------ Service activate and start   
+- meta: flush_handlers
+   
+- name: Enable cerebro services
+  service:
+    name: cerebro
+    enabled: yes
+    state: started        
+      

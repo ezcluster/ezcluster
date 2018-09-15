@@ -1,0 +1,6 @@
+
+- hosts: cerebro
+  roles:
+  - { role: cerebro, cerebro_version: "{{{m.repositories.cerebro_version}}}", cerebro_rpm_url: "{{{ m.repositories.repo_misc_base_url }}}/cerebro-{{cerebro_version}}.tgz", tags: [ "cerebro" ] }
+  
+ 
