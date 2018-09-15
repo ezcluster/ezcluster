@@ -1,4 +1,6 @@
 /virtualenv/
 /sandbox/
 /tmp/
+**/*.pyc
+
 
