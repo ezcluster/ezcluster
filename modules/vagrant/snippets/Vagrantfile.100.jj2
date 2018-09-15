@@ -18,7 +18,7 @@ Vagrant.configure(2) do |config|
 
   config.vm.define "{{{ node.name}}}" do |node|
     node.vm.network "private_network", ip: "{{{node.ip}}}"
-    node.vm.hostname = "{{{ node.name }}}"
+    node.vm.hostname = "{{{ node.name }}}.{{{ m.cluster.domain }}}"
     config.vm.provider "virtualbox" do |vb|
 		vb.name = "{{{m.cluster.id}}}_{{{ node.name }}}"
         vb.customize ["modifyvm", :id, "--memory", "{{{ m.data.roleByName[node.role].memory * 1024 }}}"]

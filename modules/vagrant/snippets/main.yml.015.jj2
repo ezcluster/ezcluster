@@ -1,2 +1,4 @@
 
 - hosts: all
+  roles:
+  - etc_hosts
