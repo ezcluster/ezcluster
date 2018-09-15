@@ -3,8 +3,29 @@ import os
 import jinja2
 import sys, traceback
 from misc import ERROR, ensureFolder
+import yaml
 
 logger = logging.getLogger("ezcluster.generator")
+
+
+
+def to_nice_yaml(a, **kw):
+    '''Make verbose, human readable yaml'''
+    #transformed = yaml.dump(a, Dumper=AnsibleDumper, indent=4, allow_unicode=True, default_flow_style=False, **kw)
+    #return to_unicode(transformed)
+    #return yaml.dump(a, width=120, default_flow_style=False,  canonical=False, default_style='"', tags=False, **kw)
+    return yaml.dump(a, width=10240,  indent=4, allow_unicode=True, default_flow_style=False, **kw)
+
+
+def to_yaml(a, **kw):
+    '''Make yaml'''
+    #transformed = yaml.dump(a, Dumper=AnsibleDumper, indent=4, allow_unicode=True, default_flow_style=False, **kw)
+    #return to_unicode(transformed)
+    #return yaml.dump(a, width=120, default_flow_style=False,  canonical=False, default_style='"', tags=False, **kw)
+    #return yaml.dump(a, width=10240,  indent=2, allow_unicode=True, default_flow_style=True, **kw)
+    return yaml.dump(a, **kw)
+
+
 
 def concat(fileName, targetFile, startMark, endMark):
     result = ""
@@ -33,28 +54,38 @@ def generate2(targetFilePath, tmpl, model):
         f.write(result) 
     logger.info("File '{0}' successfully generated".format(targetFilePath))
 
-def generate(targetFileByName, targetFolder, model, mark): 
+def generate(targetFileByName, targetFolder, model, mark):
+    j2env = jinja2.Environment(
+            loader = jinja2.BaseLoader(), 
+            undefined=jinja2.StrictUndefined,
+            trim_blocks=True,
+        )
+    j2env.filters['to_nice_yaml'] = to_nice_yaml
+    j2env.filters['to_yaml'] = to_yaml
+    
+    jj2env = jinja2.Environment(
+            loader = jinja2.BaseLoader(), 
+            undefined=jinja2.StrictUndefined,
+            trim_blocks=True,
+            block_start_string="{%%",
+            block_end_string="%%}",
+            variable_start_string="{{{",
+            variable_end_string="}}}",
+            comment_start_string="{{#",
+            comment_end_string="#}}"
+        )
+    jj2env.filters['to_nice_yaml'] = to_nice_yaml
+    jj2env.filters['to_yaml'] = to_yaml
+     
     generatedFiles = set()
     for targetFileName, targetFile in targetFileByName.iteritems():
         ftype = targetFile["fileParts"][0]['type']  # module ensure type is same for all fileParts
         tmplSource = concat(targetFileName, targetFile, mark == "both" or mark == "start", mark == "both" or mark == "end")
         try: 
             if ftype == "j2":
-                tmpl = jinja2.Template(tmplSource,
-                    undefined=jinja2.StrictUndefined,
-                    trim_blocks=True,
-                )
+                tmpl = j2env.from_string(tmplSource)
             elif ftype == "jj2":
-                tmpl = jinja2.Template(tmplSource,
-                    undefined=jinja2.StrictUndefined,
-                    trim_blocks=True,
-                    block_start_string="{%%",
-                    block_end_string="%%}",
-                    variable_start_string="{{{",
-                    variable_end_string="}}}",
-                    comment_start_string="{{#",
-                    comment_end_string="#}}"
-                )
+                tmpl = jj2env.from_string(tmplSource)
             elif ftype == "txt":
                 tmpl = tmplSource
             else:

@@ -7,6 +7,7 @@ source ${MYDIR}/../virtualenv/bin/activate
 python ${MYDIR}/../src/ezcluster.py $*
 err=$?
 
-deactivate
+# Useless, as we will leave this shell
+#deactivate
 
 exit $err

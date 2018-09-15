@@ -1,6 +1,6 @@
 
 
-
+from misc import ERROR
 
 def groom(module, model):
     if not "docker" in model["cluster"]:

@@ -1,0 +1,27 @@
+
+
+schema;node_list:
+  type: seq
+  required: false
+  sequence:
+  - type: map
+    mapping:
+      "elasticsearch": { type: any}
+
+
+type: map
+mapping:
+  "elasticsearch":
+    type: any
+
+    
+
+  "roles":
+    type: seq
+    required: true
+    sequence:
+    - type: map
+      mapping:
+        "elasticsearch":
+          type: any
+    

@@ -1,0 +1,21 @@
+
+
+
+{%% if "_elasticsearch_" in m.node %%}
+
+{{{ m.node._elasticsearch_ | to_nice_yaml }}}
+
+
+# There is two reasons to use a package url:
+# - It could be faster if the repo is local
+# - Seems yum install is bugged on current role:  
+#     TASK [ansible-elasticsearch : RedHat - Install Elasticsearch] **************************************************************************************************
+#     fatal: [w2]: FAILED! => {"msg": "The conditional check 'redhat_elasticsearch_install_from_repo.rc == 0' failed. The error was: error while evaluating conditional (redhat_elasticsearch_install_from_repo.rc == 0): 'dict object' has no attribute 'rc'"}  
+es_use_repository: False
+es_custom_package_url: "{{{ m.repositories.repo_misc_base_url }}}/elasticsearch-{{ es_version }}.rpm"
+
+
+{%% endif %%}
+
+
+
