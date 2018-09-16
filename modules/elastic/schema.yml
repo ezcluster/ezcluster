@@ -1,21 +1,9 @@
 
 
-schema;node_list:
-  type: seq
-  required: false
-  sequence:
-  - type: map
-    mapping:
-      "elasticsearch": { type: any}
-
-
 type: map
 mapping:
   "elasticsearch":
     type: any
-
-    
-
   "roles":
     type: seq
     required: true
@@ -24,4 +12,9 @@ mapping:
       mapping:
         "elasticsearch":
           type: any
+        "es_nodes":
+          type: seq
+          required: false
+          sequence:
+          - type: any
     

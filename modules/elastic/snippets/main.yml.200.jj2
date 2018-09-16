@@ -1,7 +1,32 @@
 
-- hosts: workers:masters
+
+{%% if m.data.esNodes is defined and m.data.esNodes | length > 0 %%}
+{%% for esNode in m.data.esNodes %%}
+- name: Will deploy instance '{{{ esNode.vars.es_instance_name }}}' on '{{{ esNode.role }}}'
+  hosts: {{{ esNode.role }}}
+  vars:
+    repo_misc_base_url:  "{{{ m.repositories.repo_misc_base_url }}}"
+{{{ esNode.vars | to_yaml(width=10240,  indent=2, allow_unicode=True, default_flow_style=False) | indent(width=4, first=True) }}}
   roles:
   - role: ansible-elasticsearch
     tags: [ "elasticsearch" ]
+    
+{%% endfor %%}
+
+{%% for esNode in m.data.esNodes %%}
+- name: Will ensure instance '{{{ esNode.vars.es_instance_name }}}' on '{{{ esNode.role }}}' is started
+  hosts: {{{ esNode.role }}}
+  tasks:
+  -  name:
+     service:
+       name: {{{ esNode.vars.es_instance_name }}}_elasticsearch.service
+       state: started
+       enabled: True
+     tags: [ "elasticsearch" ]
+    
+
+{%% endfor %%}
+
+{%% endif %%}
   
  
