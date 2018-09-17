@@ -13,68 +13,80 @@ def resolveDns(fqdn):
     except socket.gaierror:
         return None
 
+GROUP_BY_NAME="groupByName"
+CLUSTER="cluster"
+NODES="nodes"
+GROUPS="groups"
+ROLE_BY_NAME="roleByName"
+NAME="name"
+ROLE="role"
+HOSTNAME="hostname"
+DATA="data"
+FQDN="fqdn"
+IP="ip"
+
 
 def groom(module, model):
-    if 'nodes' not in model["cluster"]:
-        model['cluster']['nodes'] = []
+    if NODES not in model[CLUSTER]:
+        model[CLUSTER][NODES] = []
     
     # ----------------------------------------- Handle roles
-    model["data"]["roleByName"] = {}
-    for rl in model["cluster"]["roles"]:
+    model[DATA][ROLE_BY_NAME] = {}
+    for rl in model[CLUSTER]["roles"]:
         role = copy.deepcopy(rl)
-        model["data"]["roleByName"][role["name"]] = role
+        model[DATA][ROLE_BY_NAME][role[NAME]] = role
         # --------------- Handle embedded nodes by pushing them back in cluster
-        if 'nodes' in role:
-            for node in role["nodes"]:
-                if 'role' in node and node['role'] != role['name']:
-                    ERROR("Node {}: role mismatch: '{}' != '{}'".format(node["name"], node['role'], role["name"]))
-                node["role"] = role["name"]
-                model["cluster"]["nodes"].append(node)
-            del role['nodes']
-        role['nodes'] = [] # Replace by an array of name
+        if NODES in role:
+            for node in role[NODES]:
+                if ROLE in node and node[ROLE] != role[NAME]:
+                    ERROR("Node {}: role mismatch: '{}' != '{}'".format(node[NAME], node[ROLE], role[NAME]))
+                node[ROLE] = role[NAME]
+                model[CLUSTER][NODES].append(node)
+            del role[NODES]
+        role[NODES] = [] # Replace by an array of name
         # ------------- domain
-        role['domain'] = locate("domain", role, model["cluster"], "Role '{}': Missing domain definition (And no default value in cluster definition)".format(role["name"]))
+        role['domain'] = locate("domain", role, model[CLUSTER], "Role '{}': Missing domain definition (And no default value in cluster definition)".format(role[NAME]))
     # ----------------------------------------- Handle nodes
     nodeByIp = {}  # Just to check duplicated ip
-    nodeByName = {} # Currently, just to check duplicated name. May be set in 'data' if usefull
-    model["data"]["groupByName"] = {}
+    nodeByName = {} # Currently, just to check duplicated name. May be set in DATA if usefull
+    model[DATA][GROUP_BY_NAME] = {}
 
-    for node in model['cluster']['nodes']:
-        if node['name'] in nodeByName:
-            ERROR("Node '{}' is defined twice!".format(node['name']))
-        nodeByName[node['name']] = node
-        if not 'hostname' in node:
-            node['hostname'] = node['name']
-        if 'role' not in node:
-            ERROR("Node '{}': Missing role definition".format(node["name"]))
-        if node['role'] not in model['data']['roleByName']:
-            ERROR("Node '{}' reference an unexisting role ({})".format(node["name"], node['role']))
-        role =  model['data']['roleByName'][node['role']]
-        role['nodes'].append(node["name"])
-        node["fqdn"] = node['hostname'] + "." + role['domain']
-        ip = node['ip'] = resolveDns(node['fqdn'])
+    for node in model[CLUSTER][NODES]:
+        if node[NAME] in nodeByName:
+            ERROR("Node '{}' is defined twice!".format(node[NAME]))
+        nodeByName[node[NAME]] = node
+        if not HOSTNAME in node:
+            node[HOSTNAME] = node[NAME]
+        if ROLE not in node:
+            ERROR("Node '{}': Missing role definition".format(node[NAME]))
+        if node[ROLE] not in model[DATA][ROLE_BY_NAME]:
+            ERROR("Node '{}' reference an unexisting role ({})".format(node[NAME], node[ROLE]))
+        role =  model[DATA][ROLE_BY_NAME][node[ROLE]]
+        role[NODES].append(node[NAME])
+        node[FQDN] = node[HOSTNAME] + "." + role['domain']
+        ip = node[IP] = resolveDns(node[FQDN])
         if ip == None:
-            ERROR("Unable to lookup an IP for node '{0}' ({1})'.".format(node['name'], node['fqdn']))
+            ERROR("Unable to lookup an IP for node '{0}' ({1})'.".format(node[NAME], node[FQDN]))
         if ip not in nodeByIp:
             nodeByIp[ip] = node
         else:
-            ERROR("Same IP ({}) used for both node '{}' and '{}'".format(ip, nodeByIp[ip]['name'], node['name']))
+            ERROR("Same IP ({}) used for both node '{}' and '{}'".format(ip, nodeByIp[ip][NAME], node[NAME]))
         # Handle ansible groups binding
-        if "groups" in node:
-            for grp in node["groups"]:
-                if grp not in  model["data"]["groupByName"]:
-                    model["data"]["groupByName"][grp] = []
-                model["data"]["groupByName"][grp].append(node["name"])
+        if GROUPS in node:
+            for grp in node[GROUPS]:
+                if grp not in  model[DATA][GROUP_BY_NAME]:
+                    model[DATA][GROUP_BY_NAME][grp] = []
+                model[DATA][GROUP_BY_NAME][grp].append(node[NAME])
     # -------------------------- Build ansible groups
-    for _, role in model['data']['roleByName'].iteritems():
+    for _, role in model[DATA][ROLE_BY_NAME].iteritems():
         # ---------------- Handle ansible groups
-        if not 'groups' in role:
-            role['groups'] = [ role["name"] ]
-        for grp in role["groups"]:
-            if grp not in  model["data"]["groupByName"]:
-                 model["data"]["groupByName"][grp] = []
-            for nodeName in role['nodes']:
-                model["data"]["groupByName"][grp].append(nodeName)
+        if not GROUPS in role:
+            role[GROUPS] = [ role[NAME] ]
+        for grp in role[GROUPS]:
+            if grp not in  model[DATA][GROUP_BY_NAME]:
+                 model[DATA][GROUP_BY_NAME][grp] = []
+            for nodeName in role[NODES]:
+                model[DATA][GROUP_BY_NAME][grp].append(nodeName)
     
 
 
