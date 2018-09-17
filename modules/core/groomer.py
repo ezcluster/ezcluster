@@ -24,7 +24,7 @@ HOSTNAME="hostname"
 DATA="data"
 FQDN="fqdn"
 IP="ip"
-
+DOMAIN="domain"
 
 def groom(module, model):
     if NODES not in model[CLUSTER]:
@@ -45,7 +45,7 @@ def groom(module, model):
             del role[NODES]
         role[NODES] = [] # Replace by an array of name
         # ------------- domain
-        role['domain'] = locate("domain", role, model[CLUSTER], "Role '{}': Missing domain definition (And no default value in cluster definition)".format(role[NAME]))
+        role[DOMAIN] = locate(DOMAIN, role, model[CLUSTER], "Role '{}': Missing domain definition (And no default value in cluster definition)".format(role[NAME]))
     # ----------------------------------------- Handle nodes
     nodeByIp = {}  # Just to check duplicated ip
     nodeByName = {} # Currently, just to check duplicated name. May be set in DATA if usefull
@@ -63,7 +63,7 @@ def groom(module, model):
             ERROR("Node '{}' reference an unexisting role ({})".format(node[NAME], node[ROLE]))
         role =  model[DATA][ROLE_BY_NAME][node[ROLE]]
         role[NODES].append(node[NAME])
-        node[FQDN] = node[HOSTNAME] + "." + role['domain']
+        node[FQDN] = (node[HOSTNAME]  + "." + role[DOMAIN]) if (role[DOMAIN] != None) else node[HOSTNAME]
         ip = node[IP] = resolveDns(node[FQDN])
         if ip == None:
             ERROR("Unable to lookup an IP for node '{0}' ({1})'.".format(node[NAME], node[FQDN]))

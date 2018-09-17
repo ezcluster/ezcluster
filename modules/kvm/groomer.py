@@ -104,6 +104,8 @@ def groom(module, model):
     # ----------------------------------------- Handle roles
     for rl in model["cluster"]["roles"]:
         role = model["data"]["roleByName"][rl["name"]]
+        if "domain" not in role or role["domain"] == None or role["domain"].strip() == "":
+            ERROR("domain must be defined and not null")
         # -------------- Zone
         zoneName = locate("zone", role, model["cluster"], "Role '{}': Missing zone definition (And no default value in cluster definition)".format(role["name"]))
         if zoneName not in model["infra"]["zoneByName"]:
