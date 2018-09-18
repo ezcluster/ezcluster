@@ -27,6 +27,38 @@
 
 {%% endfor %%}
 
+{%% if m.data.esNodes[0].vars.es_enable_xpack is defined and  m.data.esNodes[0].vars.es_enable_xpack  and m.data.esNodes[0].vars.es_xpack_license is not defined %%}
+
+{%% set mastertNodeFqdn =  m.data.nodeByName[m.data.roleByName[m.data.esNodes[0].role].nodes[0]].fqdn %%}
+
+# Activate trial license. As esNodes are sorted with master first, we can use the first one.
+- name: Handle trial license
+  hosts: {{{ m.data.nodeByName[m.data.roleByName[m.data.esNodes[0].role].nodes[0]].name }}}
+  tags: [ "elasticsearch", "esTrialLicense" ]  
+  tasks:
+  - name: Check trial status
+    uri:
+      url: "http://{{{ mastertNodeFqdn }}}:{{{ m.data.esNodes[0].vars.es_api_port }}}/_xpack/license/trial_status"
+      method: GET
+      status_code:
+      - 200
+      - 401
+      return_content: yes
+    register: trialStatus
+
+#  - debug: var=trialStatus  
+
+  - name: Enable x-pack trial license
+    uri:
+      url: "http://{{{ mastertNodeFqdn }}}:{{{ m.data.esNodes[0].vars.es_api_port }}}/_xpack/license/start_trial?acknowledge=true"
+      method: POST
+      return_content: yes
+    register: trialStatus2
+    when: trialStatus.json.eligible_to_start_trial is defined and trialStatus.json.eligible_to_start_trial
+
+#  - debug: var=trialStatus2  
+#    when: trialStatus.json.eligible_to_start_trial is defined and trialStatus.json.eligible_to_start_trial
+
 {%% endif %%}
-  
+{%% endif %%}
  

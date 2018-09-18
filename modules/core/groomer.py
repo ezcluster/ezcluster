@@ -14,6 +14,7 @@ def resolveDns(fqdn):
         return None
 
 GROUP_BY_NAME="groupByName"
+NODE_BY_NAME="nodeByName"
 CLUSTER="cluster"
 NODES="nodes"
 GROUPS="groups"
@@ -48,13 +49,12 @@ def groom(module, model):
         role[DOMAIN] = locate(DOMAIN, role, model[CLUSTER], "Role '{}': Missing domain definition (And no default value in cluster definition)".format(role[NAME]))
     # ----------------------------------------- Handle nodes
     nodeByIp = {}  # Just to check duplicated ip
-    nodeByName = {} # Currently, just to check duplicated name. May be set in DATA if usefull
     model[DATA][GROUP_BY_NAME] = {}
-
+    model[DATA][NODE_BY_NAME] = {}
     for node in model[CLUSTER][NODES]:
-        if node[NAME] in nodeByName:
+        if node[NAME] in  model[DATA][NODE_BY_NAME]:
             ERROR("Node '{}' is defined twice!".format(node[NAME]))
-        nodeByName[node[NAME]] = node
+        model[DATA][NODE_BY_NAME][node[NAME]] = node
         if not HOSTNAME in node:
             node[HOSTNAME] = node[NAME]
         if ROLE not in node:
@@ -77,6 +77,7 @@ def groom(module, model):
                 if grp not in  model[DATA][GROUP_BY_NAME]:
                     model[DATA][GROUP_BY_NAME][grp] = []
                 model[DATA][GROUP_BY_NAME][grp].append(node[NAME])
+    
     # -------------------------- Build ansible groups
     for _, role in model[DATA][ROLE_BY_NAME].iteritems():
         # ---------------- Handle ansible groups
