@@ -1,0 +1,14 @@
+
+
+instances:
+{% for inst in es_hosts %}
+- name: "{{ inst.name }}"
+  ip: 
+{% for ip in inst.ip %}
+  - "{{ ip  }}"
+{% endfor %}
+  dns:
+{% for dns in inst.dns %}
+  - "{{ dns }}"
+{% endfor %}
+{% endfor %}

@@ -9,7 +9,16 @@
 - name: Set appropriate permissions
   file: dest=/opt/cerebro-{{cerebro_version}} owner=cerebro group=cerebro recurse=yes
   
-  
+- name: Disable SSL certificate check
+  blockinfile:
+    path: /opt/cerebro-{{cerebro_version}}/conf/application.conf
+    marker: "# {mark} ANSIBLE MANAGED BLOCK (SSL_UNCHECK)"
+    block: |
+      play.ws.ssl.loose.acceptAnyCertificate=true
+  notify:
+  - restart cerebro
+  when: not cerebro_validate_certs
+    
 
 - name: Create cerebro service
   template:

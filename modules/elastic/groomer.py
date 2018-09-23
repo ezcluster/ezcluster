@@ -18,6 +18,9 @@ ES_CONFIG="es_config"
 NODE_MASTER="node.master"
 VARS="vars"
 ES_INSTANCE_NAME="es_instance_name"
+_ELASTICSEARCH_="_elasticsearch_"
+NODES="nodes"
+GROUP_BY_NAME="groupByName"
 
 def groom(module, model):
     
@@ -66,7 +69,14 @@ def groom(module, model):
                 esn[VARS] = map
                 model[DATA][ESNODES].append(esn)
     # We must arrange for master nodes to be deployed first.
-    model[DATA][ESNODES].sort(key=keyFromEsNode, reverse=False)        
+    model[DATA][ESNODES].sort(key=keyFromEsNode, reverse=False)   
+    # We need to define an ansible group "_elasticsearch_" hosting all nodes with elasticsearch installed
+    elasticGroup = []
+    for role in model[CLUSTER][ROLES]:
+        if ES_NODES in role:
+            for node in role[NODES]:
+                elasticGroup.append(node[NAME])
+    model[DATA][GROUP_BY_NAME][_ELASTICSEARCH_] = elasticGroup
     
 
 

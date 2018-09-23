@@ -1,0 +1,10 @@
+
+
+type: map
+mapping:
+  "cerebro":
+    type: map
+    required: true
+    mapping:
+      validate_certs: { type: bool, required: true }
+    
