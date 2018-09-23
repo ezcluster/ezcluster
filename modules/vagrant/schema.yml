@@ -8,3 +8,14 @@ mapping:
     required: true
     mapping:
       "box": { type: str, required: true }    
+      "synced_folders":
+        type: seq
+        required: false
+        sequence:
+        - type: map
+          mapping:
+            "host_path": { type: str, required: true }
+            "vm_path": { type: str, required: true }
+            "owner": { type: str, required: true }
+            "group": { type: str, required: true }
+      
