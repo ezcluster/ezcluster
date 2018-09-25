@@ -36,8 +36,8 @@ def buildRepositories(sourceFileDir):
 
 
 def groom(module, model):
-    if 'core' not in model["cluster"]["modules"]:
-        ERROR("Module 'core' is mandatory before module 'kvm'")
+    if 'infra/core' not in model["cluster"]["modules"]:
+        ERROR("Module 'core' is mandatory before module 'vagrant'")
     
     repositories = buildRepositories(model['data']['sourceFileDir'])
     model['repositories'] = repositories
