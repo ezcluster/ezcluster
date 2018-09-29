@@ -8,6 +8,7 @@ mapping:
     required: true
     mapping:
       "box": { type: str, required: true }    
+      "local_yum_repo": { type: bool, required: false }  # Default: true
       "synced_folders":
         type: seq
         required: false

@@ -2,3 +2,7 @@
 - hosts: all
   roles:
   - etc_hosts
+{%% if m.cluster.vagrant.local_yum_repo %%}
+  - { role: yum_repo, yum_repo_mode: "local", yum_repositories_url: "{{{ m.repositories.repo_yum_base_url }}}" }
+{%% endif %%}
+
