@@ -84,7 +84,7 @@ def buildRepositories(sourceFileDir):
     return repos
 
 def groom(module, model):
-    if 'core' not in model["cluster"]["modules"]:
+    if 'infra/core' not in model["cluster"]["modules"]:
         ERROR("Module 'core' is mandatory before module 'kvm'")
     
     infra = buildInfra(module.path, model['data']['sourceFileDir'])

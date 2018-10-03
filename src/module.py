@@ -14,6 +14,7 @@ class Module:
     def __init__(self, name, path):
         self.name = name
         self.path = path
+        self.groomer = None
         
     def getSchema(self):
         f = os.path.join(self.path, "schema.yml")
@@ -29,19 +30,26 @@ class Module:
         codeFile = appendPath(self.path, "groomer.py")
         if os.path.exists(codeFile):
             logger.debug("Will load '{0}' as python code".format(codeFile))
-            groomer = imp.load_source(self.name, codeFile)
-            method = getattr(groomer, "groom")
-            if method != None:
+            self.groomer = imp.load_source(self.name, codeFile)
+            if hasattr(self.groomer, "groom"):
+                method = getattr(self.groomer, "groom")
                 logger.debug("FOUND '{0}' method".format(str(method)))
                 method(self, model)
 
     def dump(self, model, dumper):
+        # Try to lookup in groomer.py
+        if self.groomer != None:
+            if hasattr(self.groomer, "dump"):
+                method = getattr(self.groomer, "dump")
+                logger.debug("FOUND '{0}' method".format(str(method)))
+                method(self, model, dumper)
+        # Lookup a specific dump file
         codeFile = appendPath(self.path, "dump.py")
         if os.path.exists(codeFile):
             logger.debug("Will load '{0}' as python code".format(codeFile))
             dumperCode = imp.load_source(self.name, codeFile)
-            method = getattr(dumperCode, "groom")
-            if method != None:
+            if hasattr(dumperCode, "dump"):
+                method = getattr(dumperCode, "dump")
                 logger.debug("FOUND '{0}' method".format(str(method)))
                 method(self, model, dumper)
         

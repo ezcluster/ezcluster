@@ -42,4 +42,8 @@ def groom(module, model):
         model["cluster"]["vagrant"]["local_yum_repo"] = True
     repositories = buildRepositories(model['data']['sourceFileDir'])
     model['repositories'] = repositories
-    
+
+
+def dump(module, model, dumper):
+    dumper.dump("repositories.json", model['repositories'])
+        
