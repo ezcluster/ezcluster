@@ -1,16 +1,35 @@
 
 - hosts: docker
-  vars:
-{%% if m.cluster.docker.users|length > 0 %%}  
-    docker_users:
-{%% for user in m.cluster.docker.users %%}
-    - {{{ user }}}
-{%% endfor %%}
-{%% else %%}
-    docker_users: []
-{%% endif %%}
-
-  roles:
-  - docker-ce
+  tasks:
+  - name: Add docker dependencies
+    yum: pkg={{item}}
+    with_items:
+{%% for pkg in m.repositories.docker[m.cluster.docker.version].dependencies %%}
+    - {{{ pkg }}}
+{%% endfor %%}  
   
+  - name: Install docker
+    yum: pkg={{item}}
+    with_items:
+{%% for url in m.repositories.docker[m.cluster.docker.version].urls %%}
+    - {{{ url }}}
+{%% endfor %%}  
  
+ 
+  - name: Start and enable docker services
+    service:
+      name: docker
+      enabled: yes
+      state: started        
+
+{%% if m.cluster.docker.users is defined and m.cluster.docker.users|length > 0 %%}
+  - name: Add some user(s) to docker group
+    user:
+      name: "{{ item }}"
+      groups: docker
+      append: yes
+    with_items:  
+{%% for user in m.cluster.docker.users %%}
+     - {{{ user }}}
+{%% endfor %%}  
+ {%% endif %%}

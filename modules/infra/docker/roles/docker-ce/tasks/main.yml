@@ -1,15 +1,21 @@
+
+# This role is obsoleted, as we now use direct coding in main.yml
    
 - name: Add some packages for docker
-  yum: pkg=device-mapper-persistent-data,lvm2,yum-utils 
+  yum: pkg=device-mapper-persistent-data,lvm2,yum-utils,libtool-ltdl 
   
 - name: Install Docker repo
   shell: yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
   args:
     creates: /etc/yum.repos.d/docker-ce.repo
+#    
+- name: Force install of some depencies (PB in 17.03 packaging)
+  yum: pkg={{ docker_selinux_package }}
+  when: docker_selinux_package is defined
+    
     
 - name: install Docker itself
-  yum: pkg=docker-ce    
-
+  yum: pkg={{docker_package}}
 
 - name: Start and enable docker services
   service:
