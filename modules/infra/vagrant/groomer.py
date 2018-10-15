@@ -33,7 +33,7 @@ def buildRepositories(sourceFileDir):
     repos = yaml.load(open(repoFile))
     return repos
 
-
+SYNCED_FOLDERS="synced_folders"
 
 def groom(module, model):
     if 'infra/core' not in model["cluster"]["modules"]:
@@ -42,6 +42,17 @@ def groom(module, model):
         model["cluster"]["vagrant"]["local_yum_repo"] = True
     repositories = buildRepositories(model['data']['sourceFileDir'])
     model['repositories'] = repositories
+    for node in model['cluster']['nodes']:
+        if not SYNCED_FOLDERS in node:
+            node[SYNCED_FOLDERS] = []
+        role = model["data"]["roleByName"][node["role"]]
+        if SYNCED_FOLDERS in role:
+            node[SYNCED_FOLDERS] += role[SYNCED_FOLDERS]
+        if SYNCED_FOLDERS in model["cluster"]["vagrant"]:
+            node[SYNCED_FOLDERS] += model["cluster"]["vagrant"][SYNCED_FOLDERS]
+    
+    
+    
 
 
 def dump(module, model, dumper):
