@@ -1,3 +1,9 @@
+
+# EZCLUSTER: 
+access_ip: "{{ ansible_host }}" 
+ip: "{{ ansible_host }}"
+
+
 ## Directory where etcd data stored
 etcd_data_dir: /var/lib/etcd
 
