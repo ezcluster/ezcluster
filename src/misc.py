@@ -34,3 +34,8 @@ def locate(key, dict1, dict2, errmsg):
         else:
             ERROR(errmsg)
                 
+
+def setDefaultInMap(root, key, defaultValue):
+    if not key in root:
+        root[key] = defaultValue
+

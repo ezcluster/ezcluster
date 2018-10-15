@@ -1,0 +1,11 @@
+
+
+
+type: map
+mapping:
+  "kubespray":
+    required: true
+    type: map
+    mapping:
+      "repo_folder": { type: str, required: yes }
+     
