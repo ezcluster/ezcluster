@@ -21,14 +21,7 @@ class Plugin:
         if os.path.exists(f):
             return yaml.load(open(f))
         else:
-            return {}
-    
-    def getConfigSchema(self):
-        f = os.path.join(self.path, "config-schema.yml")
-        if os.path.exists(f):
-            return yaml.load(open(f))
-        else:
-            return {}
+            return {}    
     
     def groom(self, model):
         rolesPath = appendPath(self.path, "roles")

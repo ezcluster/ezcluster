@@ -29,8 +29,8 @@ def buildConfig(sourceFileDir):
         ERROR("Missing '{}' in configuration file".format(PLUGINS_PATH))
     # Adjust plugin path relative to the config file
     baseDir = os.path.dirname(sourceFileDir)
-    for index, dir in enumerate(config[PLUGINS_PATH]):
-        config[PLUGINS_PATH][index] = misc.appendPath(baseDir,  config[PLUGINS_PATH][index])
+    for index, path in enumerate(config[PLUGINS_PATH]):
+        config[PLUGINS_PATH][index] = misc.appendPath(baseDir, path)
     return (config, configFile)
     
 
@@ -53,7 +53,7 @@ def main():
         ERROR("File '{}' does not exists".format(sourceFile))
     logger.info("Will handle '{}'".format(sourceFile))
     sourceFileDir = os.path.dirname(sourceFile)
-    config,configFile = buildConfig(sourceFileDir)
+    config, configFile = buildConfig(sourceFileDir)
     
     cluster = yaml.load(open(sourceFile))
     targetFolder = misc.appendPath(sourceFileDir, cluster["build_folder"] if "build_folder" in cluster else "build")
@@ -64,13 +64,12 @@ def main():
     plugins = buildPlugins(cluster, config[PLUGINS_PATH])
     
     schema = buildSchema(mydir, plugins)
-    configSchema = buildConfigSchema(mydir, plugins)
+    configSchema = buildConfigSchema(mydir, config[PLUGINS_PATH])
 
     if param.dump:
         dumper = Dumper(targetFolder)
         dumper.dump("schema.json", schema)
         dumper.dump("config-schema.json", configSchema)
-        dumper.dump("config.json", config)
 
     k = kwalify(source_data = cluster, schema_data=schema)
     k.validate(raise_exception=False)
@@ -87,6 +86,7 @@ def main():
     data["targetFolder"] = targetFolder
     data['ezclusterHome'] = misc.appendPath(mydir,"..")
     data["rolePaths"] = set()
+    data["configFile"] = configFile
                 
     model = {}
     model['cluster'] = cluster
@@ -102,6 +102,7 @@ def main():
         dumper.dump("cluster.json", model['cluster'])
         dumper.dump("data.json", model['data'])
         dumper.dump("targetFileByName.json", targetFileByName)
+        dumper.dump("config.json", config)
         for plugin in plugins:
             plugin.dump(model, dumper)
     

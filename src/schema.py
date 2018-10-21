@@ -55,10 +55,14 @@ def buildSchema(mydir, plugins):
     return schema
 
 
-def buildConfigSchema(mydir, plugins):
+# We must take all possible schema in account, on all modules path, as configuration is independant of a specific set of modules
+def buildConfigSchema(mydir, pluginsPaths):
     schema = yaml.load(open(os.path.join(mydir, "./schemas/config-root.yml")))
-    for plugin in plugins:
-        schema = schemaMerge(schema, plugin.getConfigSchema())
+    for path in pluginsPaths:
+        for d in os.listdir(path):
+            f = os.path.join(path, d, "config-schema.yml")
+            if os.path.exists(f):
+                schema = schemaMerge(schema, yaml.load(open(f)))
     return schema
 
 

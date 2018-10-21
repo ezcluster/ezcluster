@@ -43,7 +43,7 @@ def generate2(targetFilePath, tmpl, model):
     if isinstance(tmpl,  jinja2.Template):
         try:
             result = tmpl.render(m=model)
-        except jinja2.exceptions.UndefinedError as err:
+        except jinja2.exceptions.TemplateRuntimeError as err:
             print '---------------------------------------------------------'
             traceback.print_exc(file=sys.stdout)
             print '---------------------------------------------------------'
