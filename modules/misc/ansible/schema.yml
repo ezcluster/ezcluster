@@ -1,6 +1,0 @@
-
-
-type: map
-mapping:
-  "ansible_playbooks":
-    type: any

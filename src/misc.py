@@ -39,3 +39,19 @@ def setDefaultInMap(root, key, defaultValue):
     if not key in root:
         root[key] = defaultValue
 
+def findUpward(fileName, path):
+    return findUpward2(fileName, path, path, 0)
+ 
+def findUpward2(fileName, initial, location, cpt):
+    x = os.path.join(location , fileName)
+    if os.path.isfile(x):
+        # Found !
+        return x
+    else:
+        if location == "" or location == "/" :
+            ERROR("Unable to locate a {0} file in '{1}' and upward".format(fileName, initial))
+        else:
+            if cpt < 30:
+                return findUpward2(fileName, initial, os.path.dirname(location), cpt + 1)
+            else:
+                raise Exception("Too many lookup while trying to locate '{}'".format(fileName))

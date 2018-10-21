@@ -31,11 +31,11 @@ def concat(fileName, targetFile, startMark, endMark):
     result = ""
     for filePart in targetFile['fileParts']:
         if startMark and filePart['order'] != 0:
-            result += "# ------------------------------------------------- Start of {0}/{1}-{2}\n".format(filePart.module, fileName, str(filePart.order))
+            result += "# ------------------------------------------------- Start of {0}/{1}-{2}\n".format(filePart.plugin, fileName, str(filePart.order))
         with open(filePart['name'], 'r') as f:
             result += f.read()
         if endMark and filePart['order'] != 999:
-            result += "# --------------------------------------------------- End of {0}/{1}-{2}\n".format(filePart.module, fileName, str(filePart.order))
+            result += "# --------------------------------------------------- End of {0}/{1}-{2}\n".format(filePart.plugin, fileName, str(filePart.order))
     return result
 
 def generate2(targetFilePath, tmpl, model):
@@ -79,7 +79,7 @@ def generate(targetFileByName, targetFolder, model, mark):
      
     generatedFiles = set()
     for targetFileName, targetFile in targetFileByName.iteritems():
-        ftype = targetFile["fileParts"][0]['type']  # module ensure type is same for all fileParts
+        ftype = targetFile["fileParts"][0]['type']  # plugin ensure type is same for all fileParts
         tmplSource = concat(targetFileName, targetFile, mark == "both" or mark == "start", mark == "both" or mark == "end")
         try: 
             if ftype == "j2":

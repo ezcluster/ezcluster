@@ -2,12 +2,36 @@
 
 MYDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
-source ${MYDIR}/../virtualenv/bin/activate
+if [ $# -lt 1 ];
+then
+	echo
+	echo "Missing SRC parameter!!"
+	echo "nusage: ezcluster <srcfile>"
+	echo
+	exit 1
+fi
 
-python ${MYDIR}/../src/ezcluster.py $*
+SRC=$1
+shift
+
+tempfile=$(mktemp /tmp/ezcluster.XXXXX)
+trap "rm -f $tempfile" INT TERM HUP EXIT
+
+python ${MYDIR}/../src/ezcluster.py --src $SRC --dump --out $tempfile
 err=$?
 
-# Useless, as we will leave this shell
-#deactivate
+if [ $err -ne 0 ];
+then 
+	exit $err
+fi
+
+. $tempfile
+
+if [  "${BUILD_SCRIPT}x" != "x" ];
+then
+	echo "Let's build with $BUILD_SCRIPT"
+	chmod +x $BUILD_SCRIPT
+	$BUILD_SCRIPT "$@"
+fi
 
 exit $err

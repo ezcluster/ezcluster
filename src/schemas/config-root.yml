@@ -1,8 +1,7 @@
 
 type: map
 mapping:
-  "build_folder": { type: str, required: false, unique: yes }
-  "plugins":
+  "plugins_paths":
     type: seq
     required: true
     sequence:

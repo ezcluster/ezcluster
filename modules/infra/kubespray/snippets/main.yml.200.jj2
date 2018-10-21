@@ -1,2 +1,0 @@
-        
-- include: {{{ m.cluster.kubespray.repo_folder }}}/cluster.yml

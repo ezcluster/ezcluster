@@ -48,10 +48,17 @@ def schemaMerge(a, b):
     return a
 
 
-def buildSchema(mydir, modules):
+def buildSchema(mydir, plugins):
     schema = yaml.load(open(os.path.join(mydir, "./schemas/root.yml")))
-    for module in modules:
-        schema = schemaMerge(schema, module.getSchema())
+    for plugin in plugins:
+        schema = schemaMerge(schema, plugin.getSchema())
+    return schema
+
+
+def buildConfigSchema(mydir, plugins):
+    schema = yaml.load(open(os.path.join(mydir, "./schemas/config-root.yml")))
+    for plugin in plugins:
+        schema = schemaMerge(schema, plugin.getConfigSchema())
     return schema
 
 

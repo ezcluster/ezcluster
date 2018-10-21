@@ -1,7 +1,0 @@
-
-- hosts: cerebro
-  tags: [ 'cerebro' ]
-  roles:
-  - { role: cerebro, cerebro_validate_certs: {{{ m.cluster.cerebro.validate_certs}}}, cerebro_version: "{{{m.repositories.cerebro_version}}}", cerebro_rpm_url: "{{{ m.repositories.repo_misc_base_url }}}/cerebro-{{cerebro_version}}.tgz", tags: [ "cerebro" ] }
-  
- 

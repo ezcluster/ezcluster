@@ -21,7 +21,7 @@ loggers:
     level: DEBUG
     handlers: [console]
     propagate: no
-  ezcluster.modules:
+  ezcluster.plugins:
     level: INFO
     handlers: [console]
     propagate: no
