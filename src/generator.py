@@ -1,5 +1,6 @@
 import logging
 import os
+import stat
 import jinja2
 import sys, traceback
 from misc import ERROR, ensureFolder
@@ -24,7 +25,6 @@ def to_yaml(a, **kw):
     #return yaml.dump(a, width=120, default_flow_style=False,  canonical=False, default_style='"', tags=False, **kw)
     #return yaml.dump(a, width=10240,  indent=2, allow_unicode=True, default_flow_style=True, **kw)
     return yaml.dump(a, **kw)
-
 
 
 def concat(fileName, targetFile, startMark, endMark):
@@ -52,7 +52,12 @@ def generate2(targetFilePath, tmpl, model):
         result = tmpl
     with open(targetFilePath, "w") as f:
         f.write(result) 
-    logger.info("File '{0}' successfully generated".format(targetFilePath))
+    if targetFilePath.endswith(".sh"):
+        cp = stat.S_IMODE(os.lstat(targetFilePath).st_mode)
+        os.chmod(targetFilePath,cp | stat.S_IXUSR | (stat.S_IXGRP if cp & stat.S_IRGRP else 0) | (stat.S_IXOTH if cp & stat.S_IROTH else 0) )
+        logger.info("File '{0}' successfully generated as executable".format(targetFilePath))
+    else:
+        logger.info("File '{0}' successfully generated".format(targetFilePath))
 
 def generate(targetFileByName, targetFolder, model, mark):
     j2env = jinja2.Environment(
@@ -111,7 +116,9 @@ def generate(targetFileByName, targetFolder, model, mark):
             f = os.path.join(dirpath, filename)
             # logger.debug(f)        
             if f not in generatedFiles:
-                logger.warning("Zombie file '{0}'".format(f))
+                f2 = f[len(targetFolder):]
+                if (not f2.startswith("/dump/")) and (not f2.startswith("/.vagrant/")): 
+                    logger.warning("Zombie file '{0}'".format(f))
         
         
     
