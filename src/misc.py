@@ -55,3 +55,19 @@ def findUpward2(fileName, initial, location, cpt):
                 return findUpward2(fileName, initial, os.path.dirname(location), cpt + 1)
             else:
                 raise Exception("Too many lookup while trying to locate '{}'".format(fileName))
+
+REPOSITORIES="repositories"
+
+def lookupRepository(model, token):
+    setDefaultInMap(model["data"], "repositories", {})
+    repoId = model["cluster"][token]["repo_id"] # Should be Required by schema
+    if REPOSITORIES not in model["config"] or token not in model["config"][REPOSITORIES]:
+        ERROR("Missing {}.{} in configuration file".format(REPOSITORIES, token))
+    #print model["config"][REPOSITORIES][token]
+    l = filter(lambda x: x["repo_id"] == repoId, model["config"][REPOSITORIES][token])
+    if len(l) > 1:
+        ERROR("{} repo_id '{}' is defined twice in configuration file!".format(token, repoId))
+    if len(l) != 1:
+        ERROR("{} repo_id '{}' is not defined in configuration file!".format(token, repoId))
+    model["data"][REPOSITORIES][token] = l[0]
+    
