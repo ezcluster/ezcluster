@@ -15,6 +15,7 @@ class Plugin:
         self.name = name
         self.path = path
         self.groomer = None
+        self.enabled = True
         
     def getSchema(self):
         f = os.path.join(self.path, "schema.yml")
@@ -34,7 +35,11 @@ class Plugin:
             if hasattr(self.groomer, "groom"):
                 method = getattr(self.groomer, "groom")
                 logger.debug("FOUND '{0}' method".format(str(method)))
-                method(self, model)
+                ret = method(self, model)
+                if ret == None or not isinstance(ret, bool):
+                    ERROR("Invalid plugin '{}'. groom(model) must return a boolean (enabled yes/no).".format(self.name))
+                else:
+                    self.enabled = ret
 
     def dump(self, model, dumper):
         # Try to lookup in groomer.py
@@ -54,7 +59,15 @@ class Plugin:
                 logger.debug("FOUND '{0}' method".format(str(method)))
                 method(self, model, dumper)
         """
-
+        
+    # If return false, then prevent all files generation
+    def isEnabled(self, model):
+        if self.groomer != None:
+            if hasattr(self.groomer, "isEnabled"):
+                method = getattr(self.groomer, "isEnabled")
+                logger.debug("FOUND '{0}' method".format(str(method)))
+                return method(self, model)
+        return True
 
     def walk(self, targetFileByName):
         """ Enrich the targetFileByName structure with file from this plugin """
@@ -133,7 +146,8 @@ def buildTargetFileByName(plugins):
     "Build a map by file name, where each file is an array of file parts"
     targetFileByName = {}
     for plugin in plugins:
-        plugin.walk(targetFileByName)
+        if plugin.enabled:
+            plugin.walk(targetFileByName)
     # For each target file, sort parts by order. And check validity
     for name, targetFile in targetFileByName.iteritems():
         targetFile['fileParts'] = sorted(targetFile['fileParts'], key = lambda fp: fp['order'])
