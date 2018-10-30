@@ -65,7 +65,7 @@ def findUpward2(fileName, initial, location, cpt):
         return x
     else:
         if location == "" or location == "/" :
-            ERROR("Unable to locate a {0} file in '{1}' and upward".format(fileName, initial))
+            ERROR("Unable to locate a file named '{0}' in '{1}' and upward".format(fileName, initial))
         else:
             if cpt < 30:
                 return findUpward2(fileName, initial, os.path.dirname(location), cpt + 1)

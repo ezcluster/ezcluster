@@ -2,6 +2,7 @@
 type: map
 mapping:
   "build_folder": { type: str, required: false, unique: yes }
+  "config_file": { type: str, required: false, unique: yes }
   "plugins":
     type: seq
     required: true

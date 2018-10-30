@@ -37,8 +37,8 @@ logger = logging.getLogger("ezcluster.main")
 PLUGINS_PATH="plugins_paths"
 
 
-def buildConfig(sourceFileDir):
-    configFile = findUpward("ezconfig.yml", sourceFileDir)
+def buildConfig(sourceFileDir, baseConfigFile):
+    configFile = findUpward(baseConfigFile, sourceFileDir)
     logger.info("Using '{}' as configuration file".format(configFile))
     config =  yaml.load(open(configFile))
     if PLUGINS_PATH not in config:
@@ -69,12 +69,17 @@ def main():
         ERROR("File '{}' does not exists".format(sourceFile))
     logger.info("Will handle '{}'".format(sourceFile))
     sourceFileDir = os.path.dirname(sourceFile)
-    config, configFile = buildConfig(sourceFileDir)
     
     cluster = yaml.load(open(sourceFile))
     targetFolder = misc.appendPath(sourceFileDir, cluster["build_folder"] if "build_folder" in cluster else "build")
     misc.ensureFolder(targetFolder)
     logger.info("Build folder: '{}'".format(targetFolder))
+
+    if "config_file" in cluster:
+        baseConfigFile = cluster["config_file"]
+    else:
+        baseConfigFile = "ezconfig.yml"
+    config, configFile = buildConfig(sourceFileDir, baseConfigFile)
     
     logger.debug("Plugins path:'{}'".format(config[PLUGINS_PATH]))
     plugins = buildPlugins(cluster, config[PLUGINS_PATH])
