@@ -149,12 +149,10 @@ def lookupPlugin(plugin, pluginsPath):
     ERROR("Unable to find plugin '{}'".format(plugin))
     
 
-def buildPlugins(cluster, pluginsPath):
-    plugins = []
+def appendPlugins(plugins, cluster, pluginsPath):
     if "plugins" in cluster:
         for m in cluster['plugins']:
             plugins.append(lookupPlugin(m, pluginsPath))
-    return plugins
 
 validType = set(["txt", "j2", "jj2"])
                 

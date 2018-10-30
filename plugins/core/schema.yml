@@ -1,0 +1,58 @@
+# Copyright (C) 2018 BROADSoftware
+#
+# This file is part of EzCluster
+#
+# EzCluster is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# EzCluster is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with EzCluster.  If not, see <http://www.gnu.org/licenses/lgpl-3.0.html>.
+
+schema;node_list:
+  type: seq
+  required: false
+  sequence:
+  - type: map
+    mapping:
+      "name": { type: str, required: true}
+      "role": { type: str, required: false}
+      "groups":       # Groups can also be defined at node level. Will be added to the ones from the role
+        type: seq
+        sequence:
+        - type: str
+
+
+type: map
+mapping:
+  "id": { type: str, required: true, unique: yes }
+  "domain": { type: str, required: false, unique: yes }
+
+  "roles":
+    type: seq
+    required: true
+    sequence:
+    - type: map
+      mapping:
+        "name": { type: str, required: true}
+        "vcpu": { type: int, required: true}
+        "memory": { type: int, required: true}
+        "domain": { type: str, required: false, unique: yes }
+        "nodes":
+          include: node_list
+        "groups":       # defaut value is an array of a single element with role name. (Will create an ansible group with this role name). Set groups: [] if you do not want an ansible group of this role.
+          type: seq
+          sequence:
+          - type: str
+
+
+  "nodes":
+    include: node_list
+
+    

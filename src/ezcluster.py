@@ -26,7 +26,7 @@ from pykwalify.core import Core as kwalify
 import misc
 from misc import ERROR,findUpward
 from dumper import Dumper
-from plugin import buildPlugins, buildTargetFileByName
+from plugin import appendPlugins, buildTargetFileByName,Plugin
 from schema import buildSchema,buildConfigSchema
 from generator import generate
 
@@ -81,8 +81,10 @@ def main():
         baseConfigFile = "ezconfig.yml"
     config, configFile = buildConfig(sourceFileDir, baseConfigFile)
     
+    plugins = []
+    plugins.append(Plugin("core", misc.appendPath(mydir, "../plugins/core")))
     logger.debug("Plugins path:'{}'".format(config[PLUGINS_PATH]))
-    plugins = buildPlugins(cluster, config[PLUGINS_PATH])
+    appendPlugins(plugins, cluster, config[PLUGINS_PATH])
     
     schema = buildSchema(mydir, plugins)
     configSchema = buildConfigSchema(mydir, config[PLUGINS_PATH])
