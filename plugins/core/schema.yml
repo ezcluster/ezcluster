@@ -22,6 +22,7 @@ schema;node_list:
   - type: map
     mapping:
       "name": { type: str, required: true}
+      "hostname": { type: str, required: false}
       "role": { type: str, required: false}
       "groups":       # Groups can also be defined at node level. Will be added to the ones from the role
         type: seq
