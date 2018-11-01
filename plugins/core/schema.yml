@@ -42,8 +42,6 @@ mapping:
     - type: map
       mapping:
         "name": { type: str, required: true}
-        "vcpu": { type: int, required: true}
-        "memory": { type: int, required: true}
         "domain": { type: str, required: false, unique: yes }
         "nodes":
           include: node_list
