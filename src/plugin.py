@@ -146,13 +146,18 @@ def lookupPlugin(plugin, pluginsPath):
         p = os.path.join(path, plugin)
         if os.path.exists(p):
             return Plugin(plugin, p)
-    ERROR("Unable to find plugin '{}'".format(plugin))
+    return None
     
 
 def appendPlugins(plugins, cluster, pluginsPath):
     if "plugins" in cluster:
-        for m in cluster['plugins']:
-            plugins.append(lookupPlugin(m, pluginsPath))
+        for pluginName in cluster['plugins']:
+            plugin = lookupPlugin(pluginName, pluginsPath)
+            if plugin != None:
+                plugins.append(plugin)
+            else:
+                ERROR("Unable to find plugin '{}'".format(pluginName))
+                
 
 validType = set(["txt", "j2", "jj2"])
                 
