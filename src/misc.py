@@ -74,16 +74,18 @@ def findUpward2(fileName, initial, location, cpt):
 
 REPOSITORIES="repositories"
 
-def lookupRepository(model, token):
+def lookupRepository(model, mainEntry, configEntry=None):
+    if configEntry == None:
+        configEntry = mainEntry
     setDefaultInMap(model["data"], "repositories", {})
-    repoId = model["cluster"][token]["repo_id"] # Should be Required by schema
-    if REPOSITORIES not in model["config"] or token not in model["config"][REPOSITORIES]:
-        ERROR("Missing {}.{} in configuration file".format(REPOSITORIES, token))
+    repoId = model["cluster"][mainEntry]["repo_id"] # Should be Required by schema
+    if REPOSITORIES not in model["config"] or configEntry not in model["config"][REPOSITORIES]:
+        ERROR("Missing {}.{} in configuration file".format(REPOSITORIES, configEntry))
     #print model["config"][REPOSITORIES][token]
-    l = filter(lambda x: x["repo_id"] == repoId, model["config"][REPOSITORIES][token])
+    l = filter(lambda x: x["repo_id"] == repoId, model["config"][REPOSITORIES][configEntry])
     if len(l) > 1:
-        ERROR("{} repo_id '{}' is defined twice in configuration file!".format(token, repoId))
+        ERROR("{} repo_id '{}' is defined twice in configuration file!".format(configEntry, repoId))
     if len(l) != 1:
-        ERROR("{} repo_id '{}' is not defined in configuration file!".format(token, repoId))
-    model["data"][REPOSITORIES][token] = l[0]
+        ERROR("{} repo_id '{}' is not defined in configuration file!".format(configEntry, repoId))
+    model["data"][REPOSITORIES][configEntry] = l[0]
     
