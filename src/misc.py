@@ -55,6 +55,11 @@ def setDefaultInMap(root, key, defaultValue):
     if not key in root:
         root[key] = defaultValue
 
+def file2String(fname):
+    with open(fname, 'r') as content_file:
+        content = content_file.read()      
+    return content
+
 def findUpward(fileName, path):
     return findUpward2(fileName, path, path, 0)
  

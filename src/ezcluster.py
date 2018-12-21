@@ -26,16 +26,14 @@ from pykwalify.core import Core as kwalify
 import misc
 from misc import ERROR,findUpward
 from dumper import Dumper
-from plugin import appendPlugins, buildTargetFileByName,Plugin
-from schema import buildSchema,buildConfigSchema
+from plugin import appendPlugins, buildTargetFileByName, Plugin
+from schema import buildSchema, buildConfigSchema
 from generator import generate
-
+from vault import initVaultFactory
 
 logger = logging.getLogger("ezcluster.main")
 
-
 PLUGINS_PATH="plugins_paths"
-
 
 def buildConfig(sourceFileDir, baseConfigFile):
     configFile = findUpward(baseConfigFile, sourceFileDir)
@@ -51,6 +49,8 @@ def buildConfig(sourceFileDir, baseConfigFile):
     
 
 def main():
+    global vaultFactory 
+    
     mydir =  os.path.dirname(os.path.realpath(__file__)) 
     
     parser = argparse.ArgumentParser()
@@ -128,6 +128,8 @@ def main():
         dumper.dump("config.json", config)
         for plugin in plugins:
             plugin.dump(model, dumper)
+    
+    initVaultFactory(model)
     
     generate(targetFileByName, targetFolder, model, param.mark)
     

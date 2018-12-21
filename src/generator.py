@@ -22,9 +22,9 @@ import jinja2
 import sys, traceback
 from misc import ERROR, ensureFolder
 import yaml
+from vault import getVault
 
 logger = logging.getLogger("ezcluster.generator")
-
 
 
 def to_nice_yaml(a, **kw):
@@ -34,7 +34,6 @@ def to_nice_yaml(a, **kw):
     #return yaml.dump(a, width=120, default_flow_style=False,  canonical=False, default_style='"', tags=False, **kw)
     return yaml.dump(a, width=10240,  indent=4, allow_unicode=True, default_flow_style=False, **kw)
 
-
 def to_yaml(a, **kw):
     '''Make yaml'''
     #transformed = yaml.dump(a, Dumper=AnsibleDumper, indent=4, allow_unicode=True, default_flow_style=False, **kw)
@@ -43,6 +42,16 @@ def to_yaml(a, **kw):
     #return yaml.dump(a, width=10240,  indent=2, allow_unicode=True, default_flow_style=True, **kw)
     return yaml.dump(a, **kw)
 
+
+def indent(text, amount, ch=' '):
+    padding = amount * ch
+    return ''.join(padding+line for line in text.splitlines(True))
+    
+    
+def encrypt(value, padding, vaultId="default"):
+    vault = getVault(vaultId)
+    enc = vault.encrypt(value)
+    return indent(enc, padding)
 
 def concat(fileName, targetFile, startMark, endMark):
     result = ""
@@ -84,6 +93,7 @@ def generate(targetFileByName, targetFolder, model, mark):
         )
     j2env.filters['to_nice_yaml'] = to_nice_yaml
     j2env.filters['to_yaml'] = to_yaml
+    j2env.filters['encrypt'] = encrypt
     
     jj2env = jinja2.Environment(
             loader = jinja2.BaseLoader(), 
@@ -98,7 +108,8 @@ def generate(targetFileByName, targetFolder, model, mark):
         )
     jj2env.filters['to_nice_yaml'] = to_nice_yaml
     jj2env.filters['to_yaml'] = to_yaml
-     
+    jj2env.filters['encrypt'] = encrypt
+    
     generatedFiles = set()
     for targetFileName, targetFile in targetFileByName.iteritems():
         ftype = targetFile["fileParts"][0]['type']  # plugin ensure type is same for all fileParts
