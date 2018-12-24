@@ -32,42 +32,36 @@ VAULT_ID="vault_id"
 FILE="file"
 DATA="data"
 CONFIG_FILE="configFile"
+CLUSTER="cluster"
 
-vaultFactory = None
+vault = None
 
-def initVaultFactory(model):
-    global vaultFactory
-    vaultFactory = VaultFactory(model)
+def getVault():
+    if vault != None:
+        return vault
+    else:
+        ERROR("'vault_id' is not defined while there is a need for encryption")
 
-def getVault(vaultId):
-    return vaultFactory.getVault(vaultId)
-
-class VaultFactory(object):
-    def __init__(self, model):
-        self.model = model
-        self.vaultById = {}
-        
-    def getVault(self, vaultId="default"):
-        if vaultId in self.vaultById:
-            return self.vaultById[vaultId]
-        else:
-            if VAULT_PASSWORD_FILES not in self.model["config"]:
-                ERROR("{} is missing from configuration while encryption is used in some template".format(VAULT_PASSWORD_FILES))
-            l = filter(lambda x: x["vault_id"] == vaultId, self.model["config"][VAULT_PASSWORD_FILES])
-            if len(l) > 1:
-                ERROR("{}: vault_id '{}' is defined twice in configuration file!".format(VAULT_PASSWORD_FILES, vaultId))
-            if len(l) != 1:
-                ERROR("{}: vault_id '{}' is not defined in configuration file!".format(VAULT_PASSWORD_FILES, vaultId))
-            f = appendPath(os.path.dirname(self.model[DATA][CONFIG_FILE]), l[0][FILE])
-            if not (os.path.isfile(f) and os.access(f, os.R_OK)):
-                ERROR("Non existing or not accessible vault password file '{}'.".format(f))
-            pwd = file2String(f)
-            pwd = pwd.strip()
-            vault = Vault(pwd)
-            self.vaultById[vaultId] = vault
-            return vault
-
-
+def initVault(model):
+    global vault
+    if VAULT_ID in model[CLUSTER]: 
+        vaultId = model[CLUSTER][VAULT_ID]
+        if VAULT_PASSWORD_FILES not in model["config"]:
+            ERROR("{} is missing from configuration while encryption id required ('vault_id' is defined)".format(VAULT_PASSWORD_FILES))
+        l = filter(lambda x: x["vault_id"] == vaultId, model["config"][VAULT_PASSWORD_FILES])
+        if len(l) > 1:
+            ERROR("{}: vault_id '{}' is defined twice in configuration file!".format(VAULT_PASSWORD_FILES, vaultId))
+        if len(l) != 1:
+            ERROR("{}: vault_id '{}' is not defined in configuration file!".format(VAULT_PASSWORD_FILES, vaultId))
+        f = appendPath(os.path.dirname(model[DATA][CONFIG_FILE]), l[0][FILE])
+        if not (os.path.isfile(f) and os.access(f, os.R_OK)):
+            ERROR("Non existing or not accessible vault password file '{}'.".format(f))
+        pwd = file2String(f)
+        pwd = pwd.strip()
+        vault = Vault(pwd)
+    else:
+        vault = None
+    
 class Vault(object):
     def __init__(self, password):
         self._ansible_ver = _ansible_ver

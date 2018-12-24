@@ -48,8 +48,8 @@ def indent(text, amount, ch=' '):
     return ''.join(padding+line for line in text.splitlines(True))
     
     
-def encrypt(value, padding, vaultId="default"):
-    vault = getVault(vaultId)
+def encrypt(value, padding):
+    vault = getVault()
     enc = vault.encrypt(value)
     return indent(enc, padding)
 

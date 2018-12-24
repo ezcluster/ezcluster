@@ -29,7 +29,7 @@ from dumper import Dumper
 from plugin import appendPlugins, buildTargetFileByName, Plugin
 from schema import buildSchema, buildConfigSchema
 from generator import generate
-from vault import initVaultFactory
+from vault import initVault
 
 logger = logging.getLogger("ezcluster.main")
 
@@ -115,6 +115,8 @@ def main():
     model['cluster'] = cluster
     model["config"] = config
     model['data'] = data
+
+    initVault(model)
             
     for plugin in plugins:
         plugin.groom(model)
@@ -128,8 +130,6 @@ def main():
         dumper.dump("config.json", config)
         for plugin in plugins:
             plugin.dump(model, dumper)
-    
-    initVaultFactory(model)
     
     generate(targetFileByName, targetFolder, model, param.mark)
     
