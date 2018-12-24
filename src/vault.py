@@ -19,15 +19,13 @@
 import ansible
 from misc import ERROR, appendPath, file2String
 import os
-try:
-    from ansible.parsing.vault import VaultLib
-except ImportError:
-    # Ansible<2.0
-    from ansible.utils.vault import VaultLib
+from ansible.parsing.vault import VaultLib
+from ansible.parsing.vault import is_encrypted
 
 _ansible_ver = float('.'.join(ansible.__version__.split('.')[:2]))
 
 VAULT_PASSWORD_FILES="vault_password_files"
+VAULT_PASSWORD_FILE="vaultPasswordFile"
 VAULT_ID="vault_id"
 FILE="file"
 DATA="data"
@@ -58,6 +56,7 @@ def initVault(model):
             ERROR("Non existing or not accessible vault password file '{}'.".format(f))
         pwd = file2String(f)
         pwd = pwd.strip()
+        model[DATA][VAULT_PASSWORD_FILE] = f
         vault = Vault(pwd)
     else:
         vault = None
@@ -67,7 +66,7 @@ class Vault(object):
         self._ansible_ver = _ansible_ver
 
         self.secret = password.encode('utf-8')
-        self.vault = VaultLib(self._make_secrets(self.secret))
+        self.vaultLib = VaultLib(self._make_secrets(self.secret))
 
     def _make_secrets(self, secret):
         if self._ansible_ver < 2.4:
@@ -78,5 +77,20 @@ class Vault(object):
         return [(DEFAULT_VAULT_ID_MATCH, VaultSecret(secret))]
     
     def encrypt(self, text):
-        return self.vault.encrypt(text)
+        return self.vaultLib.encrypt(text)
 
+    def encryptedFile2String(self, fileName):
+        data = file2String(fileName)
+        was_encrypted = False
+        if is_encrypted(data):
+            was_encrypted = True
+            data = self.vaultLib.decrypt(data)
+        return data, was_encrypted
+            
+    def stringToEncryptedFile(self, data, filename):
+        data = self.encrypt(data)
+        stream = file(filename, 'w')
+        stream.write(data)
+        stream.close()
+
+        
