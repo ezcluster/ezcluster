@@ -23,6 +23,8 @@ import sys, traceback
 from misc import ERROR, ensureFolder
 import yaml
 from vault import getVault
+from jinja2.ext import Extension
+from jinja2.exceptions import TemplateRuntimeError
 
 logger = logging.getLogger("ezcluster.generator")
 
@@ -42,6 +44,33 @@ def to_yaml(a, **kw):
     #return yaml.dump(a, width=10240,  indent=2, allow_unicode=True, default_flow_style=True, **kw)
     return yaml.dump(a, **kw)
 
+# https://stackoverflow.com/questions/21778252/how-to-raise-an-exception-in-a-jinja2-macro
+# https://github.com/duelafn/python-jinja2-apci
+
+# {%% raise "An error message" %%}
+
+class RaiseExtension(Extension):
+    # This is our keyword(s):
+    tags = set(['raise'])
+
+    # See also: jinja2.parser.parse_include()
+    def parse(self, parser):
+        # the first token is the token that started the tag. In our case we
+        # only listen to "raise" so this will be a name token with
+        # "raise" as value. We get the line number so that we can give
+        # that line number to the nodes we insert.
+        lineno = next(parser.stream).lineno
+
+        # Extract the message from the template
+        message_node = parser.parse_expression()
+
+        return jinja2.nodes.CallBlock(
+            self.call_method('_raise', [message_node], lineno=lineno),
+            [], [], [], lineno=lineno
+        )
+
+    def _raise(self, msg, caller):
+        raise TemplateRuntimeError(msg)
 
 def indent(text, amount, ch=' '):
     padding = amount * ch
@@ -90,6 +119,7 @@ def generate(targetFileByName, targetFolder, model, mark):
             loader = jinja2.BaseLoader(), 
             undefined=jinja2.StrictUndefined,
             trim_blocks=True,
+            extensions=[RaiseExtension]
         )
     j2env.filters['to_pretty_yaml'] = to_pretty_yaml
     j2env.filters['to_yaml'] = to_yaml
@@ -104,7 +134,8 @@ def generate(targetFileByName, targetFolder, model, mark):
             variable_start_string="{{{",
             variable_end_string="}}}",
             comment_start_string="{{#",
-            comment_end_string="#}}"
+            comment_end_string="#}}",
+            extensions=[RaiseExtension]
         )
     jj2env.filters['to_pretty_yaml'] = to_pretty_yaml
     jj2env.filters['to_yaml'] = to_yaml
