@@ -21,16 +21,25 @@ from misc import ERROR, appendPath, file2String
 import os
 from ansible.parsing.vault import VaultLib
 from ansible.parsing.vault import is_encrypted
+import yaml
+import logging
 
 _ansible_ver = float('.'.join(ansible.__version__.split('.')[:2]))
 
-VAULT_PASSWORD_FILES="vault_password_files"
+VAULTS="vaults"
+
 VAULT_PASSWORD_FILE="vaultPasswordFile"
 VAULT_ID="vault_id"
-FILE="file"
+PASSWORD_FILE="password_file"
 DATA="data"
 CONFIG_FILE="configFile"
 CLUSTER="cluster"
+SAFE_CONFIFG_FILE="safe_config_file"
+SAFE_CONFIG="safeConfig"
+_SAFE_CONFIG_FILE_="safeConfigFile"
+
+logger = logging.getLogger("ezcluster.main")
+
 
 vault = None
 
@@ -44,20 +53,32 @@ def initVault(model):
     global vault
     if VAULT_ID in model[CLUSTER]: 
         vaultId = model[CLUSTER][VAULT_ID]
-        if VAULT_PASSWORD_FILES not in model["config"]:
-            ERROR("{} is missing from configuration while encryption id required ('vault_id' is defined)".format(VAULT_PASSWORD_FILES))
-        l = filter(lambda x: x["vault_id"] == vaultId, model["config"][VAULT_PASSWORD_FILES])
+        if VAULTS not in model["config"]:
+            ERROR("{} is missing from configuration while encryption id required ('vault_id' is defined)".format(VAULTS))
+        l = filter(lambda x: x["vault_id"] == vaultId, model["config"][VAULTS])
         if len(l) > 1:
-            ERROR("{}: vault_id '{}' is defined twice in configuration file!".format(VAULT_PASSWORD_FILES, vaultId))
+            ERROR("{}: vault_id '{}' is defined twice in configuration file!".format(VAULTS, vaultId))
         if len(l) != 1:
-            ERROR("{}: vault_id '{}' is not defined in configuration file!".format(VAULT_PASSWORD_FILES, vaultId))
-        f = appendPath(os.path.dirname(model[DATA][CONFIG_FILE]), l[0][FILE])
+            ERROR("{}: vault_id '{}' is not defined in configuration file!".format(VAULTS, vaultId))
+        f = appendPath(os.path.dirname(model[DATA][CONFIG_FILE]), l[0][PASSWORD_FILE])
         if not (os.path.isfile(f) and os.access(f, os.R_OK)):
             ERROR("Non existing or not accessible vault password file '{}'.".format(f))
         pwd = file2String(f)
         pwd = pwd.strip()
         model[DATA][VAULT_PASSWORD_FILE] = f
         vault = Vault(pwd)
+        if SAFE_CONFIFG_FILE in l[0]:
+            scFileName = appendPath(os.path.dirname(model[DATA][CONFIG_FILE]), l[0][SAFE_CONFIFG_FILE])
+            model[DATA][_SAFE_CONFIG_FILE_] = scFileName
+            if not (os.path.isfile(scFileName) and os.access(scFileName, os.R_OK)):
+                ERROR("Non existing or not accessible safe config file '{}'.".format(scFileName))
+            logger.info("Loading safe config from '{}'".format(scFileName))
+            data, was_encrypted = vault.encryptedFile2String(scFileName)
+            safeConfig = yaml.load(data)
+            model[SAFE_CONFIG] = safeConfig
+            if not was_encrypted:
+                print("\n'{}' was not encrypted. Will encrypt it".format(scFileName))
+                vault.stringToEncryptedFile(data, scFileName)
     else:
         vault = None
     

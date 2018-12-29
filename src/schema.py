@@ -28,8 +28,9 @@ class YamlReaderError(Exception):
 
 def schemaMerge(a, b):
     """merges b into a and return merged result
-
     NOTE: tuples and arbitrary objects are not handled as it is totally ambiguous what should happen"""
+    if b is None:
+        return a
     key = None
     # ## debug output
     # sys.stderr.write("DEBUG: %s to %s\n" %(b,a))
@@ -74,12 +75,16 @@ def buildSchema(mydir, plugins):
 # We must take all possible schema in account, on all modules path, as configuration is independant of a specific set of modules
 def buildConfigSchema(mydir, pluginsPaths):
     schema = yaml.load(open(os.path.join(mydir, "./schemas/config-root.yml")))
+    safeSchema = yaml.load(open(os.path.join(mydir, "./schemas/safe-config-root.yml")))
     for path in pluginsPaths:
         for d in os.listdir(path):
             f = os.path.join(path, d, "config-schema.yml")
             if os.path.exists(f):
                 schema = schemaMerge(schema, yaml.load(open(f)))
-    return schema
+            sf = os.path.join(path, d, "safe-config-schema.yml")
+            if os.path.exists(sf):
+                safeSchema = schemaMerge(safeSchema, yaml.load(open(sf)))
+    return schema, safeSchema
 
 
 

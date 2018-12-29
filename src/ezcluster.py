@@ -29,7 +29,7 @@ from dumper import Dumper
 from plugin import appendPlugins, buildTargetFileByName, Plugin
 from schema import buildSchema, buildConfigSchema
 from generator import generate
-from vault import initVault
+from vault import initVault, SAFE_CONFIG, _SAFE_CONFIG_FILE_
 
 logger = logging.getLogger("ezcluster.main")
 
@@ -87,12 +87,13 @@ def main():
     appendPlugins(plugins, cluster, config[PLUGINS_PATH])
     
     schema = buildSchema(mydir, plugins)
-    configSchema = buildConfigSchema(mydir, config[PLUGINS_PATH])
+    configSchema, safeConfigSchema = buildConfigSchema(mydir, config[PLUGINS_PATH])
 
     if param.dump:
         dumper = Dumper(targetFolder)
         dumper.dump("schema.json", schema)
         dumper.dump("config-schema.json", configSchema)
+        dumper.dump("safe-config-schema.json", safeConfigSchema)
 
     k = kwalify(source_data = cluster, schema_data=schema)
     k.validate(raise_exception=False)
@@ -117,6 +118,12 @@ def main():
     model['data'] = data
 
     initVault(model)
+    
+    if SAFE_CONFIG in model and safeConfigSchema != None:
+        k = kwalify(source_data = model[SAFE_CONFIG], schema_data=safeConfigSchema)
+        k.validate(raise_exception=False)
+        if len(k.errors) != 0:
+            ERROR("Configuration problem {0}: {1}".format(model["data"][_SAFE_CONFIG_FILE_], k.errors))
             
     for plugin in plugins:
         plugin.groom(model)
@@ -128,6 +135,8 @@ def main():
         dumper.dump("data.json", model['data'])
         dumper.dump("targetFileByName.json", targetFileByName)
         dumper.dump("config.json", config)
+        dumper.dump("safeConfig.json", model[SAFE_CONFIG])  # TODO: REMOVE
+        
         for plugin in plugins:
             plugin.dump(model, dumper)
     

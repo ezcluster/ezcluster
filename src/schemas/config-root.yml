@@ -6,14 +6,15 @@ mapping:
     required: true
     sequence:
     - type: str
-  "vault_password_files":
+  "vaults":
     type: seq
     required: false
     sequence:
     - type: map
       mapping:
         "vault_id": { type: str, required: true }
-        "file": { type: str, required: true }
+        "password_file": { type: str, required: true }
+        "safe_config_file": { type: str, required: false }
              
     
     
