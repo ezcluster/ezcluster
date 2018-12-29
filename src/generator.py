@@ -27,12 +27,12 @@ from vault import getVault
 logger = logging.getLogger("ezcluster.generator")
 
 
-def to_nice_yaml(a, **kw):
+def to_pretty_yaml(a, **kw):
     '''Make verbose, human readable yaml'''
     #transformed = yaml.dump(a, Dumper=AnsibleDumper, indent=4, allow_unicode=True, default_flow_style=False, **kw)
     #return to_unicode(transformed)
     #return yaml.dump(a, width=120, default_flow_style=False,  canonical=False, default_style='"', tags=False, **kw)
-    return yaml.dump(a, width=10240,  indent=4, allow_unicode=True, default_flow_style=False, **kw)
+    return yaml.dump(a, width=10240,  indent=2, allow_unicode=True, default_flow_style=False, **kw)
 
 def to_yaml(a, **kw):
     '''Make yaml'''
@@ -91,7 +91,7 @@ def generate(targetFileByName, targetFolder, model, mark):
             undefined=jinja2.StrictUndefined,
             trim_blocks=True,
         )
-    j2env.filters['to_nice_yaml'] = to_nice_yaml
+    j2env.filters['to_pretty_yaml'] = to_pretty_yaml
     j2env.filters['to_yaml'] = to_yaml
     j2env.filters['encrypt'] = encrypt
     
@@ -106,7 +106,7 @@ def generate(targetFileByName, targetFolder, model, mark):
             comment_start_string="{{#",
             comment_end_string="#}}"
         )
-    jj2env.filters['to_nice_yaml'] = to_nice_yaml
+    jj2env.filters['to_pretty_yaml'] = to_pretty_yaml
     jj2env.filters['to_yaml'] = to_yaml
     jj2env.filters['encrypt'] = encrypt
     
