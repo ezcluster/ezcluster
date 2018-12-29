@@ -14,10 +14,17 @@ fi
 SRC=$1
 shift
 
+EZC_OPTS=""
+if [ "$1" == "--dumpPasswords" ]
+then
+	EZC_OPTS="$EZC_OPTS --dumpPasswords"
+	shift
+fi
+
 tempfile=$(mktemp /tmp/ezcluster.XXXXX)
 trap "rm -f $tempfile" INT TERM HUP EXIT
 
-python ${MYDIR}/../src/ezcluster.py --src $SRC --dump --out $tempfile
+python ${MYDIR}/../src/ezcluster.py --src $SRC --dump $EZC_OPTS --out $tempfile
 err=$?
 
 if [ $err -ne 0 ];

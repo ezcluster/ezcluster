@@ -21,9 +21,11 @@ import pprint
 import misc
 
 class Dumper:
-    def __init__(self, location):
+    def __init__(self, location, unsafe):
         self.folder = os.path.join(location, "dump")
+        self.unsafe = unsafe
         misc.ensureFolder(self.folder)
+        
         
         
     def dump(self, fileName, model):

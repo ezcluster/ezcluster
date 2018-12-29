@@ -57,6 +57,7 @@ def main():
     parser.add_argument('--src', required=True)
     parser.add_argument('--mark', choices=["none", "both", "start", "end"])
     parser.add_argument('--dump', action='store_true')
+    parser.add_argument('--dumpPasswords', action='store_true')
     parser.add_argument('--out')    # Generate a file to set some variable
     
     param = parser.parse_args()
@@ -90,7 +91,7 @@ def main():
     configSchema, safeConfigSchema = buildConfigSchema(mydir, config[PLUGINS_PATH])
 
     if param.dump:
-        dumper = Dumper(targetFolder)
+        dumper = Dumper(targetFolder, param.dumpPasswords)
         dumper.dump("schema.json", schema)
         dumper.dump("config-schema.json", configSchema)
         dumper.dump("safe-config-schema.json", safeConfigSchema)
@@ -135,7 +136,8 @@ def main():
         dumper.dump("data.json", model['data'])
         dumper.dump("targetFileByName.json", targetFileByName)
         dumper.dump("config.json", config)
-        dumper.dump("safeConfig.json", model[SAFE_CONFIG])  # TODO: REMOVE
+        if SAFE_CONFIG in model and dumper.unsafe:
+            dumper.dump("safeConfig.json", model[SAFE_CONFIG])  # TODO: REMOVE
         
         for plugin in plugins:
             plugin.dump(model, dumper)
