@@ -78,6 +78,10 @@ def findUpward2(fileName, initial, location, cpt):
                 raise Exception("Too many lookup while trying to locate '{}'".format(fileName))
 
 REPOSITORIES="repositories"
+HELPERS="helpers"
+DATA="data"
+CONFIG_FILE = "configFile"
+FOLDER="folder"
 
 def lookupRepository(model, mainEntry, configEntry=None):
     if configEntry == None:
@@ -93,4 +97,21 @@ def lookupRepository(model, mainEntry, configEntry=None):
     if len(l) != 1:
         ERROR("{} repo_id '{}' is not defined in configuration file!".format(configEntry, repoId))
     model["data"][REPOSITORIES][configEntry] = l[0]
+    
+def lookupHelper(model, mainEntry, configEntry=None):
+    if configEntry == None:
+        configEntry = mainEntry
+    setDefaultInMap(model["data"], HELPERS, {})
+    helperId = model["cluster"][mainEntry]["helper_id"] # Should be Required by schema
+    if HELPERS not in model["config"] or configEntry not in model["config"][HELPERS]:
+        ERROR("Missing {}.{} in configuration file".format(HELPERS, configEntry))
+    #print model["config"][HELPERS][token]
+    l = filter(lambda x: x["helper_id"] == helperId, model["config"][HELPERS][configEntry])
+    if len(l) > 1:
+        ERROR("{} helper_id '{}' is defined twice in configuration file!".format(configEntry, helperId))
+    if len(l) != 1:
+        ERROR("{} helper_id '{}' is not defined in configuration file!".format(configEntry, helperId))
+    helper = l[0]
+    helper[FOLDER] = appendPath(os.path.dirname(model[DATA][CONFIG_FILE]),  helper[FOLDER]) 
+    model[DATA][HELPERS][configEntry] = helper
     
