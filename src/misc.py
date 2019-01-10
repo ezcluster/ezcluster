@@ -24,6 +24,20 @@ def ERROR(err):
     #raise Exception("xx")
     exit(1)
 
+errors = []
+
+def ADD_ERROR(err):
+    global errors
+    errors.append(err)
+    
+def FLUSH_ERROR():
+    global errors
+    if len(errors) > 0:
+        for err in errors:
+            print "* * * * ERROR: {}".format(err)
+        exit(1)
+
+
 def appendPath(p1, p2):
     if os.path.isabs(p2):
         return p2
