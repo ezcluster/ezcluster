@@ -95,6 +95,8 @@ def main():
         dumper.dump("schema.json", schema)
         dumper.dump("config-schema.json", configSchema)
         dumper.dump("safe-config-schema.json", safeConfigSchema)
+    else:
+        dumper = None
 
     k = kwalify(source_data = cluster, schema_data=schema)
     k.validate(raise_exception=False)
@@ -137,12 +139,12 @@ def main():
         dumper.dump("targetFileByName.json", targetFileByName)
         dumper.dump("config.json", config)
         if SAFE_CONFIG in model and dumper.unsafe:
-            dumper.dump("safeConfig.json", model[SAFE_CONFIG])  # TODO: REMOVE
+            dumper.dump("safeConfig.json", model[SAFE_CONFIG]) 
         
         for plugin in plugins:
             plugin.dump(model, dumper)
     
-    generate(targetFileByName, targetFolder, model, param.mark)
+    generate(targetFileByName, targetFolder, model, param.mark, dumper)
     
     if "out" in param:
         f = open(param.out, "w+")

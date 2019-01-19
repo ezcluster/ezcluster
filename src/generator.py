@@ -114,7 +114,7 @@ def generate2(targetFilePath, tmpl, model):
     else:
         logger.info("File '{0}' successfully generated".format(targetFilePath))
 
-def generate(targetFileByName, targetFolder, model, mark):
+def generate(targetFileByName, targetFolder, model, mark, dumper):
     j2env = jinja2.Environment(
             loader = jinja2.BaseLoader(), 
             undefined=jinja2.StrictUndefined,
@@ -156,7 +156,9 @@ def generate(targetFileByName, targetFolder, model, mark):
                 ERROR("?? Unknown file type {0} on {1}".format(ftype, targetFileName)) 
         except jinja2.exceptions.TemplateSyntaxError as err:
             ERROR("Error in template built from '{0}'.\nLine {1}: {2}".format(str(targetFile), err.lineno, err))
-        # logger.debug(tmpl)
+        logger.debug(targetFileName)
+        if dumper != None:
+            dumper.dumpTmpl(targetFileName, ftype, tmplSource)
         if "_node_" in targetFileName:
             for node in model['cluster']['nodes']:
                 tgf = targetFileName.replace("_node_", node["name"])

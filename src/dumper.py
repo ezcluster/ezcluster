@@ -35,3 +35,11 @@ class Dumper:
         out.close()
         
         
+    def dumpTmpl(self, fileName, tmplType, string):
+        fname = os.path.join(self.folder, "tmpls", fileName + "." + tmplType)
+        misc.ensureFolder(os.path.dirname(fname))
+        with open(fname, "w") as f:
+            f.write(string) 
+
+        
+        
