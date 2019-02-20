@@ -42,7 +42,7 @@ def buildConfig(sourceFileDir, baseConfigFile):
     if PLUGINS_PATH not in config:
         ERROR("Missing '{}' in configuration file".format(PLUGINS_PATH))
     # Adjust plugin path relative to the config file
-    baseDir = os.path.dirname(sourceFileDir)
+    baseDir = os.path.dirname(configFile)
     for index, path in enumerate(config[PLUGINS_PATH]):
         config[PLUGINS_PATH][index] = misc.appendPath(baseDir, path)
     return (config, configFile)
