@@ -38,7 +38,7 @@ PLUGINS_PATH="plugins_paths"
 def buildConfig(sourceFileDir, baseConfigFile):
     configFile = findUpward(baseConfigFile, sourceFileDir)
     logger.info("Using '{}' as configuration file".format(configFile))
-    config =  yaml.load(open(configFile))
+    config =  yaml.load(open(configFile), Loader=yaml.SafeLoader)
     if PLUGINS_PATH not in config:
         ERROR("Missing '{}' in configuration file".format(PLUGINS_PATH))
     # Adjust plugin path relative to the config file
@@ -63,7 +63,7 @@ def main():
     param = parser.parse_args()
 
     loggingConfFile =  os.path.join(mydir, "./logging.yml")
-    logging.config.dictConfig(yaml.load(open(loggingConfFile)))
+    logging.config.dictConfig(yaml.load(open(loggingConfFile), Loader=yaml.SafeLoader))
 
     sourceFile = os.path.normpath(os.path.abspath(param.src))
     if not os.path.isfile(sourceFile):
@@ -71,7 +71,7 @@ def main():
     logger.info("Will handle '{}'".format(sourceFile))
     sourceFileDir = os.path.dirname(sourceFile)
     
-    cluster = yaml.load(open(sourceFile))
+    cluster = yaml.load(open(sourceFile), Loader=yaml.SafeLoader)
     targetFolder = misc.appendPath(sourceFileDir, cluster["build_folder"] if "build_folder" in cluster else "build")
     misc.ensureFolder(targetFolder)
     logger.info("Build folder: '{}'".format(targetFolder))

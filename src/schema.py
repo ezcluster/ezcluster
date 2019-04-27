@@ -66,7 +66,7 @@ def schemaMerge(a, b):
 
 
 def buildSchema(mydir, plugins):
-    schema = yaml.load(open(os.path.join(mydir, "./schemas/root.yml")))
+    schema = yaml.load(open(os.path.join(mydir, "./schemas/root.yml")), Loader=yaml.SafeLoader)
     for plugin in plugins:
         schema = schemaMerge(schema, plugin.getSchema())
     return schema
@@ -74,16 +74,16 @@ def buildSchema(mydir, plugins):
 
 # We must take all possible schema in account, on all modules path, as configuration is independant of a specific set of modules
 def buildConfigSchema(mydir, pluginsPaths):
-    schema = yaml.load(open(os.path.join(mydir, "./schemas/config-root.yml")))
-    safeSchema = yaml.load(open(os.path.join(mydir, "./schemas/safe-config-root.yml")))
+    schema = yaml.load(open(os.path.join(mydir, "./schemas/config-root.yml")), Loader=yaml.SafeLoader)
+    safeSchema = yaml.load(open(os.path.join(mydir, "./schemas/safe-config-root.yml")), Loader=yaml.SafeLoader)
     for path in pluginsPaths:
         for d in os.listdir(path):
             f = os.path.join(path, d, "config-schema.yml")
             if os.path.exists(f):
-                schema = schemaMerge(schema, yaml.load(open(f)))
+                schema = schemaMerge(schema, yaml.load(open(f), Loader=yaml.SafeLoader))
             sf = os.path.join(path, d, "safe-config-schema.yml")
             if os.path.exists(sf):
-                safeSchema = schemaMerge(safeSchema, yaml.load(open(sf)))
+                safeSchema = schemaMerge(safeSchema, yaml.load(open(sf), Loader=yaml.SafeLoader))
     return schema, safeSchema
 
 

@@ -74,7 +74,7 @@ def initVault(model):
                 ERROR("Non existing or not accessible safe config file '{}'.".format(scFileName))
             logger.info("Loading safe config from '{}'".format(scFileName))
             data, was_encrypted = vault.encryptedFile2String(scFileName)
-            safeConfig = yaml.load(data)
+            safeConfig = yaml.load(data, Loader=yaml.SafeLoader)
             model[SAFE_CONFIG] = safeConfig
             if not was_encrypted:
                 print("\n'{}' was not encrypted. Will encrypt it".format(scFileName))

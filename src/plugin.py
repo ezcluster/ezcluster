@@ -36,7 +36,7 @@ class Plugin:
     def getSchema(self):
         f = os.path.join(self.path, "schema.yml")
         if os.path.exists(f):
-            return yaml.load(open(f))
+            return yaml.load(open(f), Loader=yaml.SafeLoader)
         else:
             return {}    
     
