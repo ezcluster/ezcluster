@@ -15,11 +15,9 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with EzCluster.  If not, see <http://www.gnu.org/licenses/lgpl-3.0.html>.
 
-import os
 import copy
-from misc import ERROR, appendPath, locate, FLUSH_ERROR,ADD_ERROR
+from misc import ERROR, locate, FLUSH_ERROR,ADD_ERROR
 import socket
-import ipaddress
 
 
 
@@ -43,7 +41,7 @@ FQDN="fqdn"
 IP="ip"
 DOMAIN="domain"
 
-def groom(plugin, model):
+def groom(_plugin, model):
     if NODES not in model[CLUSTER]:
         model[CLUSTER][NODES] = []
     
@@ -103,7 +101,7 @@ def groom(plugin, model):
             role[GROUPS] = [ role[NAME] ]
         for grp in role[GROUPS]:
             if grp not in  model[DATA][GROUP_BY_NAME]:
-                 model[DATA][GROUP_BY_NAME][grp] = []
+                model[DATA][GROUP_BY_NAME][grp] = []
             for nodeName in role[NODES]:
                 model[DATA][GROUP_BY_NAME][grp].append(nodeName)
     
