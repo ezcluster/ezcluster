@@ -97,11 +97,12 @@ DATA="data"
 CONFIG_FILE = "configFile"
 FOLDER="folder"
 
-def lookupRepository(model, mainEntry, configEntry=None):
+def lookupRepository(model, mainEntry, configEntry=None, repoId=None):
     if configEntry == None:
         configEntry = mainEntry
     setDefaultInMap(model["data"], "repositories", {})
-    repoId = model["cluster"][mainEntry]["repo_id"] # Should be Required by schema
+    if repoId == None:
+        repoId = model["cluster"][mainEntry]["repo_id"] # Should be Required by schema
     if REPOSITORIES not in model["config"] or configEntry not in model["config"][REPOSITORIES]:
         ERROR("Missing {}.{} in configuration file".format(REPOSITORIES, configEntry))
     #print model["config"][REPOSITORIES][token]
