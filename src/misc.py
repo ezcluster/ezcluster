@@ -96,6 +96,13 @@ HELPERS="helpers"
 DATA="data"
 CONFIG_FILE = "configFile"
 FOLDER="folder"
+SECURITY="security"
+CONTEXT="context"
+SECURITY_CONTEXTS="security_contexts"
+CONFIG="config"
+SECURITY_CONTEXT="security_context"
+CLUSTER="cluster"
+NAME="name"
 
 def lookupRepository(model, mainEntry, configEntry=None, repoId=None):
     if configEntry == None:
@@ -129,4 +136,26 @@ def lookupHelper(model, mainEntry, configEntry=None):
     helper = l[0]
     helper[FOLDER] = appendPath(os.path.dirname(model[DATA][CONFIG_FILE]),  helper[FOLDER]) 
     model[DATA][HELPERS][configEntry] = helper
-    
+
+def lookupSecurityContext(model, mainEntry, configEntry=None):
+
+    if configEntry == None:
+        configEntry = mainEntry
+
+    setDefaultInMap(model[DATA], SECURITY_CONTEXTS, {})
+
+    context = model[CLUSTER][mainEntry][SECURITY_CONTEXT]
+
+    if SECURITY_CONTEXTS not in model[CONFIG] or configEntry not in model[CONFIG][SECURITY_CONTEXTS]:
+        ERROR("Missing {}.{} in configuration file".format(SECURITY_CONTEXTS, configEntry))
+
+    # Considering name as identifier of the context
+    l = filter(lambda x: x[NAME] == context, model[CONFIG][SECURITY_CONTEXTS][configEntry])
+
+    if len(l) > 1:
+        ERROR("{} context '{}' is defined twice in configuration file!".format(configEntry, context))
+    if len(l) != 1:
+        ERROR("{} context '{}' is not defined in configuration file!".format(configEntry, context))
+
+    model[DATA][SECURITY_CONTEXTS][configEntry] = l[0]
+
