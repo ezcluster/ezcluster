@@ -41,9 +41,18 @@ class Plugin:
             return {}    
     
     def groom(self, model):
-        rolesPath = appendPath(self.path, "roles")
-        if os.path.exists(rolesPath):
-            model['data']["rolePaths"].add(rolesPath)
+        
+        extRolePath = appendPath(self.path, "roles.yml")
+        if os.path.exists(extRolePath):
+            pathList = yaml.load(open(extRolePath), Loader=yaml.SafeLoader)
+            if not isinstance(pathList,list):
+                ERROR("File {} must contain a list of path".format(extRolePath))
+            for p in pathList:
+                model['data']["rolePaths"].add(appendPath(self.path, p))
+        else:
+            rolesPath = appendPath(self.path, "roles")
+            if os.path.exists(rolesPath):
+                model['data']["rolePaths"].add(rolesPath)
         codeFile = appendPath(self.path, "groomer.py")
         if os.path.exists(codeFile):
             logger.debug("Will load '{0}' as python code".format(codeFile))
