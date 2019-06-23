@@ -113,11 +113,12 @@ def lookupRepository(model, mainEntry, configEntry=None, repoId=None):
         ERROR("{} repo_id '{}' is not defined in configuration file!".format(configEntry, repoId))
     model["data"][REPOSITORIES][configEntry] = l[0]
     
-def lookupHelper(model, mainEntry, configEntry=None):
+def lookupHelper(model, mainEntry, configEntry=None, helperId=None):
     if configEntry == None:
         configEntry = mainEntry
     setDefaultInMap(model["data"], HELPERS, {})
-    helperId = model["cluster"][mainEntry]["helper_id"] # Should be Required by schema
+    if helperId is None:
+        helperId = model["cluster"][mainEntry]["helper_id"] # Should be Required by schema
     if HELPERS not in model["config"] or configEntry not in model["config"][HELPERS]:
         ERROR("Missing {}.{} in configuration file".format(HELPERS, configEntry))
     #print model["config"][HELPERS][token]
