@@ -103,6 +103,22 @@ CONFIG="config"
 SECURITY_CONTEXT="security_context"
 CLUSTER="cluster"
 NAME="name"
+HTTP_PROXIES="http_proxies"
+PROXY_ID="proxy_id"
+HTTPPROXIES="httpProxies"
+
+def lookupHttpProxy(model, proxyId, storeKey):
+    setDefaultInMap(model["data"], HTTPPROXIES, {})
+    if proxyId is None: 
+        return
+    if  HTTP_PROXIES not in model["config"]:
+        ERROR("Missing {} in configuration file".format(HTTP_PROXIES))
+    l = filter(lambda x: x[PROXY_ID] == proxyId, model["config"][HTTP_PROXIES])
+    if len(l) > 1:
+        ERROR("proxy_id '{}' is defined twice in configuration file!".format(proxyId))
+    if len(l) != 1:
+        ERROR("proxy_id '{}' is not defined in configuration file!".format(proxyId))
+    model["data"][HTTPPROXIES][storeKey] = l[0]
 
 def lookupRepository(model, mainEntry, configEntry=None, repoId=None):
     if configEntry == None:

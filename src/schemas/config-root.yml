@@ -15,7 +15,17 @@ mapping:
         "vault_id": { type: str, required: true }
         "password_file": { type: str, required: true }
         "safe_config_file": { type: str, required: false }
-             
+  "http_proxies":
+    type: seq
+    required: false
+    sequence:
+    - type: map
+      mapping:
+        "proxy_id": { type: str, required: true }       
+        "http_proxy": { type: str, required: false }       
+        "https_proxy": { type: str, required: false }       
+        "no_proxy": { type: str, required: false }       
+        "proxy_ca_url": { type: str, required: false }       
     
     
     
