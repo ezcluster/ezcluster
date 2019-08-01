@@ -18,6 +18,7 @@
 
 import os
 import errno
+import socket
 
 def ERROR(err):
     print "* * * * ERROR: {}".format(err)
@@ -106,6 +107,10 @@ NAME="name"
 HTTP_PROXIES="http_proxies"
 PROXY_ID="proxy_id"
 HTTPPROXIES="httpProxies"
+FQDN="fqdn"
+IP="ip"
+NODES="nodes"
+
 
 def lookupHttpProxy(model, proxyId, storeKey):
     setDefaultInMap(model["data"], HTTPPROXIES, {})
@@ -176,3 +181,25 @@ def lookupSecurityContext(model, mainEntry, configEntry=None):
 
     model[DATA][SECURITY_CONTEXTS][configEntry] = l[0]
 
+
+
+def resolveDns(fqdn):
+    try: 
+        return socket.gethostbyname(fqdn)
+    except socket.gaierror:
+        return None
+
+def resolveIps(model):
+    nodeByIp = {}  # Just to check duplicated ip
+    for node in model[CLUSTER][NODES]:
+        ip = node[IP] = resolveDns(node[FQDN])
+        if ip == None:
+            ADD_ERROR("Unable to lookup IP for node '{0}' ({1})'.".format(node[NAME], node[FQDN]))
+        else: 
+            if ip not in nodeByIp:
+                nodeByIp[ip] = node
+            else:
+                ERROR("Same IP ({}) used for both node '{}' and '{}'".format(ip, nodeByIp[ip][NAME], node[NAME]))
+    FLUSH_ERROR()
+
+    
