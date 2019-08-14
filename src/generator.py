@@ -76,7 +76,6 @@ def indent(text, amount, ch=' '):
     padding = amount * ch
     return ''.join(padding+line for line in text.splitlines(True))
     
-    
 def encrypt(value, padding):
     vault = getVault()
     enc = vault.encrypt(value)
@@ -133,8 +132,8 @@ def generate(targetFileByName, targetFolder, model, mark, dumper):
             block_end_string="%%}",
             variable_start_string="{{{",
             variable_end_string="}}}",
-            comment_start_string="{{#",
-            comment_end_string="#}}",
+            comment_start_string="{##",
+            comment_end_string="##}",
             extensions=[RaiseExtension]
         )
     jj2env.filters['to_pretty_yaml'] = to_pretty_yaml
@@ -178,7 +177,7 @@ def generate(targetFileByName, targetFolder, model, mark, dumper):
             # logger.debug(f)        
             if f not in generatedFiles:
                 f2 = f[len(targetFolder):]
-                if (not f2.startswith("/dump/")) and (not f2.startswith("/.vagrant/")): 
+                if (not f2.startswith("/dump/")) and (not f2.startswith("/.vagrant/")) and (not f2.startswith("/.terraform/")) and (not f2.startswith("/terraform/")): 
                     logger.warning("Zombie file '{0}'".format(f))
         
         
