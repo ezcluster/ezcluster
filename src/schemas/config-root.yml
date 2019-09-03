@@ -25,6 +25,7 @@ mapping:
         "http_proxy": { type: str, required: false }       
         "https_proxy": { type: str, required: false }       
         "no_proxy": { type: str, required: false }       
+        "no_proxy_java": { type: str, required: false }       
         "proxy_ca_url": { type: str, required: false }       
     
     
