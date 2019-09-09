@@ -16,8 +16,7 @@
 # along with EzCluster.  If not, see <http://www.gnu.org/licenses/lgpl-3.0.html>.
 
 import copy
-from misc import ERROR, locate
-
+from misc import ERROR, locate,setDefaultInMap
 
 
 GROUP_BY_NAME="groupByName"
@@ -33,6 +32,9 @@ DATA="data"
 DOMAIN="domain"
 FQDN="fqdn"
 
+def dedup(l):
+    return list(set(l))
+
 def groom(_plugin, model):
     if NODES not in model[CLUSTER]:
         model[CLUSTER][NODES] = []
@@ -42,12 +44,21 @@ def groom(_plugin, model):
     for rl in model[CLUSTER]["roles"]:
         role = copy.deepcopy(rl)
         model[DATA][ROLE_BY_NAME][role[NAME]] = role
+        # Setup role groups list, by adding role name and dedup.
+        setDefaultInMap(role, GROUPS, [])
+        role[GROUPS].append(role[NAME])
+        role[GROUPS] = dedup(role[GROUPS])
         # --------------- Handle embedded nodes by pushing them back in cluster
         if NODES in role:
             for node in role[NODES]:
                 if ROLE in node and node[ROLE] != role[NAME]:
                     ERROR("Node {}: role mismatch: '{}' != '{}'".format(node[NAME], node[ROLE], role[NAME]))
                 node[ROLE] = role[NAME]
+                # Handle node's groups
+                setDefaultInMap(node, GROUPS, [])
+                node[GROUPS].extend(role[GROUPS])
+                node[GROUPS] = dedup(node[GROUPS])
+                # Add node in cluster
                 model[CLUSTER][NODES].append(node)
             del role[NODES]
         role[NODES] = [] # Replace by an array of name
@@ -69,22 +80,11 @@ def groom(_plugin, model):
         role =  model[DATA][ROLE_BY_NAME][node[ROLE]]
         role[NODES].append(node[NAME])
         node[FQDN] = (node[HOSTNAME]  + "." + role[DOMAIN]) if (role[DOMAIN] != None) else node[HOSTNAME]
-        # Handle ansible groups binding
-        if GROUPS in node:
-            for grp in node[GROUPS]:
-                if grp not in  model[DATA][GROUP_BY_NAME]:
-                    model[DATA][GROUP_BY_NAME][grp] = []
-                model[DATA][GROUP_BY_NAME][grp].append(node[NAME])
-    # -------------------------- Build ansible groups
-    for _, role in model[DATA][ROLE_BY_NAME].iteritems():
-        # ---------------- Handle ansible groups
-        if not GROUPS in role:
-            role[GROUPS] = [ role[NAME] ]
-        for grp in role[GROUPS]:
-            if grp not in  model[DATA][GROUP_BY_NAME]:
-                model[DATA][GROUP_BY_NAME][grp] = []
-            for nodeName in role[NODES]:
-                model[DATA][GROUP_BY_NAME][grp].append(nodeName)
-    
+        # And add to GROUP_BY_NAME (Mainly for ansible groups)
+        for grp in node[GROUPS]:
+            setDefaultInMap(model[DATA][GROUP_BY_NAME], grp, [])
+            model[DATA][GROUP_BY_NAME][grp].append(node[NAME])
     return True # Always enabled
+
+    
 
