@@ -189,6 +189,12 @@ def resolveDns(fqdn):
     except socket.gaierror:
         return None
 
+def resolveDnsAndCheck(fqdnOrIp):
+    ip = resolveDns(fqdnOrIp)
+    if ip is None:
+        ERROR("Unable to resolve '{}'".format(fqdnOrIp))
+    return ip
+
 def resolveIps(model):
     nodeByIp = {}  # Just to check duplicated ip
     for node in model[CLUSTER][NODES]:

@@ -84,6 +84,16 @@ class Plugin:
                 logger.debug("FOUND '{0}' method".format(str(method)))
                 method(self, model, dumper)
         """
+
+    # To allow a second stage of grooming, to resolve some plugin dependency issue.
+    def groom2(self, model):
+        if self.groomer != None:
+            if hasattr(self.groomer, "groom2"):
+                method = getattr(self.groomer, "groom2")
+                logger.debug("FOUND '{0}' method".format(str(method)))
+                method(self, model)
+            
+
         
     # If return false, then prevent all files generation
     def isEnabled(self, model):

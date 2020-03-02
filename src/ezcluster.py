@@ -131,6 +131,9 @@ def main():
     for plugin in plugins:
         plugin.groom(model)
 
+    for plugin in plugins:
+        plugin.groom2(model)
+
     targetFileByName = buildTargetFileByName(plugins)
 
     if param.dump:
