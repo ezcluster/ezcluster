@@ -92,9 +92,9 @@ def main():
 
     if param.dump:
         dumper = Dumper(targetFolder, param.dumpPasswords)
-        dumper.dump("schema.json", schema)
-        dumper.dump("config-schema.json", configSchema)
-        dumper.dump("safe-config-schema.json", safeConfigSchema)
+        dumper.dump("schema.dmp", schema)
+        dumper.dump("config-schema.dmp", configSchema)
+        dumper.dump("safe-config-schema.dmp", safeConfigSchema)
     else:
         dumper = None
 
@@ -137,12 +137,12 @@ def main():
     targetFileByName = buildTargetFileByName(plugins)
 
     if param.dump:
-        dumper.dump("cluster.json", model['cluster'])
-        dumper.dump("data.json", model['data'])
-        dumper.dump("targetFileByName.json", targetFileByName)
-        dumper.dump("config.json", config)
+        dumper.dump("cluster.dmp", model['cluster'])
+        dumper.dump("data.dmp", model['data'])
+        dumper.dump("targetFileByName.dmp", targetFileByName)
+        dumper.dump("config.dmp", config)
         if SAFE_CONFIG in model and dumper.unsafe:
-            dumper.dump("safeConfig.json", model[SAFE_CONFIG]) 
+            dumper.dump("safeConfig.dmp", model[SAFE_CONFIG]) 
         
         for plugin in plugins:
             plugin.dump(model, dumper)
