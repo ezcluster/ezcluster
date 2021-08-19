@@ -17,14 +17,14 @@
 
 import os
 import argparse
-#import logging
+# import logging
 import logging.config
 import yaml
 import sys
-from pykwalify.core import Core as kwalify
+from pykwalify.core import Core as Kwalify
 
 import misc
-from misc import ERROR,findUpward
+from misc import ERROR, findUpward
 from dumper import Dumper
 from plugin import appendPlugins, buildTargetFileByName, Plugin
 from schema import buildSchema, buildConfigSchema
@@ -33,25 +33,26 @@ from vault import initVault, SAFE_CONFIG, _SAFE_CONFIG_FILE_
 
 logger = logging.getLogger("ezcluster.main")
 
-PLUGINS_PATH="plugins_paths"
+PLUGINS_PATH = "plugins_paths"
+
 
 def buildConfig(sourceFileDir, baseConfigFile):
     configFile = findUpward(baseConfigFile, sourceFileDir)
     logger.info("Using '{}' as configuration file".format(configFile))
-    config =  yaml.load(open(configFile), Loader=yaml.SafeLoader)
+    config = yaml.load(open(configFile), Loader=yaml.SafeLoader)
     if PLUGINS_PATH not in config:
         ERROR("Missing '{}' in configuration file".format(PLUGINS_PATH))
     # Adjust plugin path relative to the config file
     baseDir = os.path.dirname(configFile)
     for index, path in enumerate(config[PLUGINS_PATH]):
         config[PLUGINS_PATH][index] = misc.appendPath(baseDir, path)
-    return (config, configFile)
+    return config, configFile
     
 
 def main():
     global vaultFactory 
     
-    mydir =  os.path.dirname(os.path.realpath(__file__)) 
+    mydir = os.path.dirname(os.path.realpath(__file__))
     
     parser = argparse.ArgumentParser()
     parser.add_argument('--src', required=True)
@@ -62,7 +63,7 @@ def main():
     
     param = parser.parse_args()
 
-    loggingConfFile =  os.path.join(mydir, "./logging.yml")
+    loggingConfFile = os.path.join(mydir, "./logging.yml")
     logging.config.dictConfig(yaml.load(open(loggingConfFile), Loader=yaml.SafeLoader))
 
     sourceFile = os.path.normpath(os.path.abspath(param.src))
@@ -82,8 +83,7 @@ def main():
         baseConfigFile = "ezconfig.yml"
     config, configFile = buildConfig(sourceFileDir, baseConfigFile)
     
-    plugins = []
-    plugins.append(Plugin("core", misc.appendPath(mydir, "../plugins/core")))
+    plugins = [Plugin("core", misc.appendPath(mydir, "../plugins/core"))]
     logger.debug("Plugins path:'{}'".format(config[PLUGINS_PATH]))
     appendPlugins(plugins, cluster, config[PLUGINS_PATH])
     
@@ -98,32 +98,34 @@ def main():
     else:
         dumper = None
 
-    k = kwalify(source_data = cluster, schema_data=schema)
+    k = Kwalify(source_data=cluster, schema_data=schema)
     k.validate(raise_exception=False)
     if len(k.errors) != 0:
         ERROR("Problem {0}: {1}".format(sourceFile, k.errors))
     
-    k = kwalify(source_data = config, schema_data=configSchema)
+    k = Kwalify(source_data=config, schema_data=configSchema)
     k.validate(raise_exception=False)
     if len(k.errors) != 0:
         ERROR("Configuration problem {0}: {1}".format(configFile, k.errors))
     
-    data = {}
-    data['sourceFileDir'] = sourceFileDir
-    data["targetFolder"] = targetFolder
-    data['ezclusterHome'] = misc.appendPath(mydir,"..")
-    data["rolePaths"] = set()
-    data["configFile"] = configFile
-                
-    model = {}
-    model['cluster'] = cluster
-    model["config"] = config
-    model['data'] = data
+    data = {
+        'sourceFileDir': sourceFileDir,
+        "targetFolder": targetFolder,
+        'ezclusterHome': misc.appendPath(mydir, ".."),
+        "rolePaths": set(),
+        "configFile": configFile
+    }
+
+    model = {
+        'cluster': cluster,
+        "config": config,
+        'data': data
+    }
 
     initVault(model)
     
-    if SAFE_CONFIG in model and safeConfigSchema != None:
-        k = kwalify(source_data = model[SAFE_CONFIG], schema_data=safeConfigSchema)
+    if SAFE_CONFIG in model and safeConfigSchema is not None:
+        k = Kwalify(source_data=model[SAFE_CONFIG], schema_data=safeConfigSchema)
         k.validate(raise_exception=False)
         if len(k.errors) != 0:
             ERROR("Configuration problem {0}: {1}".format(model["data"][_SAFE_CONFIG_FILE_], k.errors))
@@ -155,7 +157,8 @@ def main():
         if "buildScript" in model["data"]:
             f.write('BUILD_SCRIPT="{}"\n'.format(model["data"]["buildScript"]))
         f.close()
-    
+
+
 if __name__ == '__main__':
     sys.exit(main())
     

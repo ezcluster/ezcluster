@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NAME=virtualenv
+NAME=venv
 
 MYDIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 

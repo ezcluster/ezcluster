@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with EzCluster.  If not, see <http://www.gnu.org/licenses/lgpl-3.0.html>.
 
-
+import numbers
 import yaml
 import os
 
@@ -23,8 +23,11 @@ import os
 From http://stackoverflow.com/questions/7204805/dictionaries-of-dictionaries-merge
 Modified for merging sequence, which are only one elements. So, must merge inner (mapping) items
 """
+
+
 class YamlReaderError(Exception):
     pass
+
 
 def schemaMerge(a, b):
     """merges b into a and return merged result
@@ -35,16 +38,16 @@ def schemaMerge(a, b):
     # ## debug output
     # sys.stderr.write("DEBUG: %s to %s\n" %(b,a))
     try:
-        if a is None or isinstance(a, str) or isinstance(a, unicode) or isinstance(a, int) or isinstance(a, long) or isinstance(a, float):
+        if a is None or isinstance(a, str) or isinstance(a, numbers.Number) or isinstance(a, float):
             # border case for first run or if a is a primitive
             a = b
         elif isinstance(a, list):
             # lists can be only appended
             if isinstance(b, list):
                 # merge lists
-                #a.extend(b)
+                # a.extend(b)
                 # Specific to kwalify schema description: Sequence are alwoys on item.
-                schemaMerge(a[0], b[0]) 
+                schemaMerge(a[0], b[0])
             else:
                 # append to list
                 a.append(b)
@@ -60,7 +63,7 @@ def schemaMerge(a, b):
                 raise YamlReaderError('Cannot merge non-dict "%s" into dict "%s"' % (b, a))
         else:
             raise YamlReaderError('NOT IMPLEMENTED "%s" into "%s"' % (b, a))
-    except TypeError, e:
+    except TypeError as e:
         raise YamlReaderError('TypeError "%s" in key "%s" when merging "%s" into "%s"' % (e, key, b, a))
     return a
 
@@ -77,7 +80,7 @@ def buildConfigSchema(mydir, pluginsPaths):
     schema = yaml.load(open(os.path.join(mydir, "./schemas/config-root.yml")), Loader=yaml.SafeLoader)
     safeSchema = yaml.load(open(os.path.join(mydir, "./schemas/safe-config-root.yml")), Loader=yaml.SafeLoader)
     for path in pluginsPaths:
-        for dirpath, _dirnames, filenames in os.walk(path): 
+        for dirpath, _dirnames, filenames in os.walk(path):
             for f in filenames:
                 if f == "config-schema.yml":
                     f = os.path.join(dirpath, f)
@@ -86,7 +89,3 @@ def buildConfigSchema(mydir, pluginsPaths):
                     f = os.path.join(dirpath, f)
                     safeSchema = schemaMerge(safeSchema, yaml.load(open(f), Loader=yaml.SafeLoader))
     return schema, safeSchema
-
-
-
-    

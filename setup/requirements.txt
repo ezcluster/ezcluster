@@ -1,5 +1,8 @@
+# NB: This venv is intended to be used by the IDE for python editing.
+# When effectuvely used, ezcluster will be executed in the virtualenv of the infra repository
 
 ipaddress >= 1.0.22
 Jinja2 >= 2.10
 pykwalify >= 1.6.1
+PyYAML>=5.4
 # ansible >= 2.4

@@ -19,7 +19,8 @@ import logging
 import os
 import stat
 import jinja2
-import sys, traceback
+import sys
+import traceback
 from misc import ERROR, ensureFolder
 import yaml
 from vault import getVault
@@ -30,28 +31,31 @@ logger = logging.getLogger("ezcluster.generator")
 
 
 def to_pretty_yaml(a, **kw):
-    '''Make verbose, human readable yaml'''
-    #transformed = yaml.dump(a, Dumper=AnsibleDumper, indent=4, allow_unicode=True, default_flow_style=False, **kw)
-    #return to_unicode(transformed)
-    #return yaml.dump(a, width=120, default_flow_style=False,  canonical=False, default_style='"', tags=False, **kw)
-    return yaml.dump(a, width=10240,  indent=2, allow_unicode=True, default_flow_style=False, **kw)
+    """Make verbose, human readable yaml"""
+    # transformed = yaml.dump(a, Dumper=AnsibleDumper, indent=4, allow_unicode=True, default_flow_style=False, **kw)
+    # return to_unicode(transformed)
+    # return yaml.dump(a, width=120, default_flow_style=False,  canonical=False, default_style='"', tags=False, **kw)
+    return yaml.dump(a, width=10240, indent=2, allow_unicode=True, default_flow_style=False, **kw)
+
 
 def to_yaml(a, **kw):
-    '''Make yaml'''
-    #transformed = yaml.dump(a, Dumper=AnsibleDumper, indent=4, allow_unicode=True, default_flow_style=False, **kw)
-    #return to_unicode(transformed)
-    #return yaml.dump(a, width=120, default_flow_style=False,  canonical=False, default_style='"', tags=False, **kw)
-    #return yaml.dump(a, width=10240,  indent=2, allow_unicode=True, default_flow_style=True, **kw)
+    """Make yaml"""
+    # transformed = yaml.dump(a, Dumper=AnsibleDumper, indent=4, allow_unicode=True, default_flow_style=False, **kw)
+    # return to_unicode(transformed)
+    # return yaml.dump(a, width=120, default_flow_style=False,  canonical=False, default_style='"', tags=False, **kw)
+    # return yaml.dump(a, width=10240,  indent=2, allow_unicode=True, default_flow_style=True, **kw)
     return yaml.dump(a, **kw)
+
 
 # https://stackoverflow.com/questions/21778252/how-to-raise-an-exception-in-a-jinja2-macro
 # https://github.com/duelafn/python-jinja2-apci
 
 # {%% raise "An error message" %%}
 
+
 class RaiseExtension(Extension):
     # This is our keyword(s):
-    tags = set(['raise'])
+    tags = {'raise'}
 
     # See also: jinja2.parser.parse_include()
     def parse(self, parser):
@@ -72,14 +76,17 @@ class RaiseExtension(Extension):
     def _raise(self, msg, caller):
         raise TemplateRuntimeError(msg)
 
+
 def indent(text, amount, ch=' '):
     padding = amount * ch
-    return ''.join(padding+line for line in text.splitlines(True))
-    
+    return ''.join(padding + line for line in text.splitlines(True))
+
+
 def encrypt(value, padding):
     vault = getVault()
     enc = vault.encrypt(value)
     return indent(enc, padding)
+
 
 def concat(fileName, targetFile, startMark, endMark):
     result = ""
@@ -92,59 +99,63 @@ def concat(fileName, targetFile, startMark, endMark):
             result += "# --------------------------------------------------- End of {0}/{1}-{2}\n".format(filePart.plugin, fileName, str(filePart.order))
     return result
 
+
 def generate2(targetFilePath, tmpl, model):
     ensureFolder(os.path.dirname(targetFilePath))
-    if isinstance(tmpl,  jinja2.Template):
+    result = None  # Just to remove a warning
+    if isinstance(tmpl, jinja2.Template):
         try:
             result = tmpl.render(m=model)
         except jinja2.exceptions.TemplateRuntimeError as err:
-            print '---------------------------------------------------------'
+            print('---------------------------------------------------------')
             traceback.print_exc(file=sys.stdout)
-            print '---------------------------------------------------------'
+            print('---------------------------------------------------------')
             ERROR("Error in '{0}' file generation: {1}".format(targetFilePath, err.message))
     else:
         result = tmpl
     with open(targetFilePath, "w") as f:
-        f.write(result) 
+        f.write(result)
     if targetFilePath.endswith(".sh"):
         cp = stat.S_IMODE(os.lstat(targetFilePath).st_mode)
-        os.chmod(targetFilePath,cp | stat.S_IXUSR | (stat.S_IXGRP if cp & stat.S_IRGRP else 0) | (stat.S_IXOTH if cp & stat.S_IROTH else 0) )
+        os.chmod(targetFilePath, cp | stat.S_IXUSR | (stat.S_IXGRP if cp & stat.S_IRGRP else 0) | (stat.S_IXOTH if cp & stat.S_IROTH else 0))
         logger.info("File '{0}' successfully generated as executable".format(targetFilePath))
     else:
         logger.info("File '{0}' successfully generated".format(targetFilePath))
 
+
 def generate(targetFileByName, targetFolder, model, mark, dumper):
     j2env = jinja2.Environment(
-            loader = jinja2.BaseLoader(), 
-            undefined=jinja2.StrictUndefined,
-            trim_blocks=True,
-            extensions=[RaiseExtension]
-        )
+        loader=jinja2.BaseLoader(),
+        undefined=jinja2.StrictUndefined,
+        trim_blocks=True,
+        extensions=[RaiseExtension]
+    )
     j2env.filters['to_pretty_yaml'] = to_pretty_yaml
     j2env.filters['to_yaml'] = to_yaml
     j2env.filters['encrypt'] = encrypt
-    
+
     jj2env = jinja2.Environment(
-            loader = jinja2.BaseLoader(), 
-            undefined=jinja2.StrictUndefined,
-            trim_blocks=True,
-            block_start_string="{%%",
-            block_end_string="%%}",
-            variable_start_string="{{{",
-            variable_end_string="}}}",
-            comment_start_string="{##",
-            comment_end_string="##}",
-            extensions=[RaiseExtension]
-        )
+        loader=jinja2.BaseLoader(),
+        undefined=jinja2.StrictUndefined,
+        trim_blocks=True,
+        block_start_string="{%%",
+        block_end_string="%%}",
+        variable_start_string="{{{",
+        variable_end_string="}}}",
+        comment_start_string="{##",
+        comment_end_string="##}",
+        extensions=[RaiseExtension]
+    )
     jj2env.filters['to_pretty_yaml'] = to_pretty_yaml
     jj2env.filters['to_yaml'] = to_yaml
     jj2env.filters['encrypt'] = encrypt
-    
+
     generatedFiles = set()
-    for targetFileName, targetFile in targetFileByName.iteritems():
+    for targetFileName, targetFile in targetFileByName.items():
         ftype = targetFile["fileParts"][0]['type']  # plugin ensure type is same for all fileParts
         tmplSource = concat(targetFileName, targetFile, mark == "both" or mark == "start", mark == "both" or mark == "end")
-        try: 
+        tmpl = None  # Just to remove a warning
+        try:
             if ftype == "j2":
                 tmpl = j2env.from_string(tmplSource)
             elif ftype == "jj2":
@@ -152,11 +163,11 @@ def generate(targetFileByName, targetFolder, model, mark, dumper):
             elif ftype == "txt":
                 tmpl = tmplSource
             else:
-                ERROR("?? Unknown file type {0} on {1}".format(ftype, targetFileName)) 
+                ERROR("?? Unknown file type {0} on {1}".format(ftype, targetFileName))
         except jinja2.exceptions.TemplateSyntaxError as err:
             ERROR("Error in template built from '{0}'.\nLine {1}: {2}".format(str(targetFile), err.lineno, err))
         logger.debug(targetFileName)
-        if dumper != None:
+        if dumper is not None:
             dumper.dumpTmpl(targetFileName, ftype, tmplSource)
         if "_node_" in targetFileName:
             for node in model['cluster']['nodes']:
@@ -177,8 +188,5 @@ def generate(targetFileByName, targetFolder, model, mark, dumper):
             # logger.debug(f)        
             if f not in generatedFiles:
                 f2 = f[len(targetFolder):]
-                if (not f2.startswith("/dump/")) and (not f2.startswith("/.vagrant/")) and (not f2.startswith("/.terraform/")) and (not f2.startswith("/terraform/")): 
+                if (not f2.startswith("/dump/")) and (not f2.startswith("/.vagrant/")) and (not f2.startswith("/.terraform/")) and (not f2.startswith("/terraform/")):
                     logger.warning("Zombie file '{0}'".format(f))
-        
-        
-    

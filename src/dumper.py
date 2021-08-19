@@ -20,21 +20,19 @@ import pprint
 
 import misc
 
+
 class Dumper:
     def __init__(self, location, unsafe):
         self.folder = os.path.join(location, "dump")
         self.unsafe = unsafe
         misc.ensureFolder(self.folder)
-        
-        
-        
+
     def dump(self, fileName, model):
-        out  = file(os.path.join(self.folder, fileName), "w")
+        out = open(os.path.join(self.folder, fileName), "w")
         pp = pprint.PrettyPrinter(indent=2, stream=out)
         pp.pprint(model)
         out.close()
-        
-        
+
     def dumpTmpl(self, fileName, tmplType, string):
         fname = os.path.join(self.folder, "tmpls", fileName + "." + tmplType)
         misc.ensureFolder(os.path.dirname(fname))

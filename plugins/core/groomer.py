@@ -16,29 +16,30 @@
 # along with EzCluster.  If not, see <http://www.gnu.org/licenses/lgpl-3.0.html>.
 
 import copy
-from misc import ERROR, locate,setDefaultInMap
+from misc import ERROR, locate, setDefaultInMap
+
+GROUP_BY_NAME = "groupByName"
+NODE_BY_NAME = "nodeByName"
+CLUSTER = "cluster"
+NODES = "nodes"
+GROUPS = "groups"
+ROLE_BY_NAME = "roleByName"
+NAME = "name"
+ROLE = "role"
+HOSTNAME = "hostname"
+DATA = "data"
+DOMAIN = "domain"
+FQDN = "fqdn"
 
 
-GROUP_BY_NAME="groupByName"
-NODE_BY_NAME="nodeByName"
-CLUSTER="cluster"
-NODES="nodes"
-GROUPS="groups"
-ROLE_BY_NAME="roleByName"
-NAME="name"
-ROLE="role"
-HOSTNAME="hostname"
-DATA="data"
-DOMAIN="domain"
-FQDN="fqdn"
+def dedup(ls):
+    return list(set(ls))
 
-def dedup(l):
-    return list(set(l))
 
 def groom(_plugin, model):
     if NODES not in model[CLUSTER]:
         model[CLUSTER][NODES] = []
-    
+
     # ----------------------------------------- Handle roles
     model[DATA][ROLE_BY_NAME] = {}
     for rl in model[CLUSTER]["roles"]:
@@ -61,30 +62,27 @@ def groom(_plugin, model):
                 # Add node in cluster
                 model[CLUSTER][NODES].append(node)
             del role[NODES]
-        role[NODES] = [] # Replace by an array of name
+        role[NODES] = []  # Replace by an array of name
         # ------------- domain
         role[DOMAIN] = locate(DOMAIN, role, model[CLUSTER], "Role '{}': Missing domain definition (And no default value in cluster definition)".format(role[NAME]))
     # ----------------------------------------- Handle nodes
     model[DATA][GROUP_BY_NAME] = {}
     model[DATA][NODE_BY_NAME] = {}
     for node in model[CLUSTER][NODES]:
-        if node[NAME] in  model[DATA][NODE_BY_NAME]:
+        if node[NAME] in model[DATA][NODE_BY_NAME]:
             ERROR("Node '{}' is defined twice!".format(node[NAME]))
         model[DATA][NODE_BY_NAME][node[NAME]] = node
-        if not HOSTNAME in node:
+        if HOSTNAME not in node:
             node[HOSTNAME] = node[NAME]
         if ROLE not in node:
             ERROR("Node '{}': Missing role definition".format(node[NAME]))
         if node[ROLE] not in model[DATA][ROLE_BY_NAME]:
             ERROR("Node '{}' reference an unexisting role ({})".format(node[NAME], node[ROLE]))
-        role =  model[DATA][ROLE_BY_NAME][node[ROLE]]
+        role = model[DATA][ROLE_BY_NAME][node[ROLE]]
         role[NODES].append(node[NAME])
-        node[FQDN] = (node[HOSTNAME]  + "." + role[DOMAIN]) if (role[DOMAIN] != None) else node[HOSTNAME]
+        node[FQDN] = (node[HOSTNAME] + "." + role[DOMAIN]) if (role[DOMAIN] is not None) else node[HOSTNAME]
         # And add to GROUP_BY_NAME (Mainly for ansible groups)
         for grp in node[GROUPS]:
             setDefaultInMap(model[DATA][GROUP_BY_NAME], grp, [])
             model[DATA][GROUP_BY_NAME][grp].append(node[NAME])
-    return True # Always enabled
-
-    
-
+    return True  # Always enabled
