@@ -14,19 +14,19 @@ loggers:
     handlers: [console]
     propagate: no
   ezcluster.main:
-    level: DEBUG
+    level: INFO
     handlers: [console]
     propagate: no
   ezcluster.groomer:
-    level: DEBUG
+    level: INFO
     handlers: [console]
     propagate: no
   ezcluster.plugins:
-    level: DEBUG
+    level: INFO
     handlers: [console]
     propagate: no
   ezcluster.generator:
-    level: DEBUG
+    level: WARN
     handlers: [console]
     propagate: no
 root:
