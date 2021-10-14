@@ -44,6 +44,9 @@ def FLUSH_ERROR():
 
 
 def appendPath(p1, p2):
+    # Sanitize
+    p1 = p1.strip()
+    p2 = p2.strip()
     if os.path.isabs(p2):
         return p2
     else:
