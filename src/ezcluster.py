@@ -35,15 +35,24 @@ logger = logging.getLogger("ezcluster.main")
 
 PLUGINS_PATH = "plugins_paths"
 
+USER_PROFILE = "user_profile"
 
 def buildConfig(sourceFileDir, baseConfigFile):
     configFile = findUpward(baseConfigFile, sourceFileDir)
     logger.info("Using '{}' as configuration file".format(configFile))
     config = yaml.load(open(configFile), Loader=yaml.SafeLoader)
+    baseDir = os.path.dirname(configFile)
+    if USER_PROFILE in config:
+        userFile = misc.appendUserPath(baseDir, config[USER_PROFILE])
+        del(config[USER_PROFILE])
+        if not os.path.isfile(userFile):
+            ERROR("User profile file '{}' does not exists".format(userFile))
+        logger.info("Merging '{}' in configuration file".format(userFile))
+        user_data = yaml.load(open(userFile), Loader=yaml.SafeLoader)
+        config = misc.data_merge(config, user_data)
     if PLUGINS_PATH not in config:
         ERROR("Missing '{}' in configuration file".format(PLUGINS_PATH))
     # Adjust plugin path relative to the config file
-    baseDir = os.path.dirname(configFile)
     for index, path in enumerate(config[PLUGINS_PATH]):
         config[PLUGINS_PATH][index] = misc.appendPath(baseDir, path)
     return config, configFile
