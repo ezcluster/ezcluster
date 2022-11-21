@@ -181,6 +181,8 @@ def lookupHelper(model, mainEntry, configEntry=None, helperId=None):
         ERROR("{} helper_id '{}' is not defined in configuration file!".format(configEntry, helperId))
     helper = ls[0]
     helper[FOLDER] = appendPath(os.path.dirname(model[DATA][CONFIG_FILE]), helper[FOLDER])
+    if not os.path.exists(helper[FOLDER]) or not os.path.isdir(helper[FOLDER]):
+        ERROR("{} helper_id[{}].folder does not exists or is not a folder".format(configEntry, helperId))
     model[DATA][HELPERS][configEntry] = helper
 
 
