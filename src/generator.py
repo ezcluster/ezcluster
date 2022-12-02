@@ -188,5 +188,5 @@ def generate(targetFileByName, targetFolder, model, mark, dumper):
             # logger.debug(f)        
             if f not in generatedFiles:
                 f2 = f[len(targetFolder):]
-                if (not f2.startswith("/dump/")) and (not f2.startswith("/.vagrant/")) and (not f2.startswith("/.terraform/")) and (not f2.startswith("/terraform/")):
+                if (not f2.startswith("/dump/")) and (not f2.startswith("/.vagrant/")) and (not f2.startswith("/.terraform/")) and (not f2.startswith("/terraform/")) and (not f2.startswith("/notzombie/")):
                     logger.warning("Zombie file '{0}'".format(f))
