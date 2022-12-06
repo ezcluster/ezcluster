@@ -162,6 +162,8 @@ class Plugin:
 
 
 def lookupPlugin(plugin, pluginsPath):
+    if plugin is None:
+        ERROR("Empty entry in plugins list")
     for path in pluginsPath:
         p = os.path.join(path, plugin)
         if os.path.exists(p):
