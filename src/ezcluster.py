@@ -30,6 +30,7 @@ from plugin import appendPlugins, buildTargetFileByName, Plugin
 from schema import buildSchema, buildConfigSchema
 from generator import generate
 from vault import initVault, SAFE_CONFIG, _SAFE_CONFIG_FILE_
+from injectenv import injectenv, MissingVariableError
 
 logger = logging.getLogger("ezcluster.main")
 
@@ -37,10 +38,18 @@ PLUGINS_PATH = "plugins_paths"
 
 USER_PROFILE = "user_profile"
 
+
 def buildConfig(sourceFileDir, baseConfigFile):
     configFile = findUpward(baseConfigFile, sourceFileDir)
     logger.info("Using '{}' as configuration file".format(configFile))
-    config = yaml.load(open(configFile), Loader=yaml.SafeLoader)
+    with open(configFile, 'r') as file:
+        data = file.read()
+    try:
+        data = injectenv(data)
+    except MissingVariableError as err:
+        ERROR("Error in file '{}': {}".format(configFile, err))
+    config = yaml.safe_load(data)
+    # config = yaml.load(open(configFile), Loader=yaml.SafeLoader)
     baseDir = os.path.dirname(configFile)
     if USER_PROFILE in config:
         userFile = misc.appendUserPath(baseDir, config[USER_PROFILE])
