@@ -57,8 +57,14 @@ def buildConfig(sourceFileDir, baseConfigFile):
         if not os.path.isfile(userFile):
             ERROR("User profile file '{}' does not exists".format(userFile))
         logger.info("Merging '{}' in configuration file".format(userFile))
-        user_data = yaml.load(open(userFile), Loader=yaml.SafeLoader)
-        config = misc.data_merge(config, user_data)
+        with open(userFile, 'r') as file:
+            data = file.read()
+        try:
+            data = injectenv(data)
+        except MissingVariableError as err:
+            ERROR("Error in file '{}': {}".format(userFile, err))
+        user_config = yaml.safe_load(data)
+        config = misc.data_merge(config, user_config)
     if PLUGINS_PATH not in config:
         ERROR("Missing '{}' in configuration file".format(PLUGINS_PATH))
     # Adjust plugin path relative to the config file
