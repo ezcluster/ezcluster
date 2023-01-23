@@ -39,17 +39,22 @@ PLUGINS_PATH = "plugins_paths"
 USER_PROFILE = "user_profile"
 
 
-def buildConfig(sourceFileDir, baseConfigFile):
-    configFile = findUpward(baseConfigFile, sourceFileDir)
-    logger.info("Using '{}' as configuration file".format(configFile))
-    with open(configFile, 'r') as file:
+def load_and_inject(file_name):
+    with open(file_name, 'r') as file:
         data = file.read()
     try:
         data = injectenv(data)
     except MissingVariableError as err:
-        ERROR("Error in file '{}': {}".format(configFile, err))
-    config = yaml.safe_load(data)
-    # config = yaml.load(open(configFile), Loader=yaml.SafeLoader)
+        ERROR("Error in file '{}': {}".format(file_name, err))
+    result = yaml.safe_load(data)
+    return result
+
+
+
+def buildConfig(sourceFileDir, baseConfigFile):
+    configFile = findUpward(baseConfigFile, sourceFileDir)
+    logger.info("Using '{}' as configuration file".format(configFile))
+    config = load_and_inject(configFile)
     baseDir = os.path.dirname(configFile)
     if USER_PROFILE in config:
         userFile = misc.appendUserPath(baseDir, config[USER_PROFILE])
@@ -57,13 +62,7 @@ def buildConfig(sourceFileDir, baseConfigFile):
         if not os.path.isfile(userFile):
             ERROR("User profile file '{}' does not exists".format(userFile))
         logger.info("Merging '{}' in configuration file".format(userFile))
-        with open(userFile, 'r') as file:
-            data = file.read()
-        try:
-            data = injectenv(data)
-        except MissingVariableError as err:
-            ERROR("Error in file '{}': {}".format(userFile, err))
-        user_config = yaml.safe_load(data)
+        user_config = load_and_inject(userFile)
         config = misc.data_merge(config, user_config)
     if PLUGINS_PATH not in config:
         ERROR("Missing '{}' in configuration file".format(PLUGINS_PATH))
@@ -95,8 +94,7 @@ def main():
         ERROR("File '{}' does not exists".format(sourceFile))
     logger.info("Will handle '{}'".format(sourceFile))
     sourceFileDir = os.path.dirname(sourceFile)
-    
-    cluster = yaml.load(open(sourceFile), Loader=yaml.SafeLoader)
+    cluster = load_and_inject(sourceFile)
     targetFolder = misc.appendPath(sourceFileDir, cluster["build_folder"] if "build_folder" in cluster else "build")
     misc.ensureFolder(targetFolder)
     logger.info("Build folder: '{}'".format(targetFolder))
