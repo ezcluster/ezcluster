@@ -24,7 +24,7 @@ fi
 tempfile=$(mktemp /tmp/ezcluster.XXXXXX)
 trap "rm -f $tempfile" INT TERM HUP EXIT
 
-python ${MYDIR}/../src/ezcluster.py --src $SRC --dump $EZC_OPTS --out $tempfile
+python3 ${MYDIR}/../src/ezcluster.py --src $SRC --dump $EZC_OPTS --out $tempfile
 err=$?
 
 if [ $err -ne 0 ];
